@@ -43,8 +43,6 @@ namespace Poly2Tri {
 		}
 
 		public int X,Y;
-		public int Xf { get { return (int)X; } set { X=value; } }
-		public int Yf { get { return (int)Y; } set { Y=value; } }
 
 		public void AddEdge(DTSweepConstraint e) {
 			if (Edges == null) Edges = new List<DTSweepConstraint>();

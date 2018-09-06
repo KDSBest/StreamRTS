@@ -39,18 +39,18 @@ using System.Collections.Generic;
 
 namespace Poly2Tri {
 	public class PolygonSet {
-		protected List<Polygon> _polygons = new List<Polygon>();
+		protected List<NavMeshPolygon> _polygons = new List<NavMeshPolygon>();
 
 		public PolygonSet() {}
 
-		public PolygonSet(Polygon poly) {
+		public PolygonSet(NavMeshPolygon poly) {
 			_polygons.Add(poly);
 		}
 
-		public void Add(Polygon p) {
+		public void Add(NavMeshPolygon p) {
 			_polygons.Add(p);
 		}
 
-		public IEnumerable<Polygon> Polygons { get { return _polygons; } }
+		public IEnumerable<NavMeshPolygon> Polygons { get { return _polygons; } }
 	}
 }
