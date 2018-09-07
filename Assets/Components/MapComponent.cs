@@ -61,7 +61,7 @@ namespace Components.Debug
             {
                 foreach (var cell in map.Grid.Cells.Values)
                 {
-                    if (cell.IsBuildable)
+                    if (cell.Type == Type.Walkable)
                     {
                         Gizmos.color = Color.green;
                     }
@@ -77,7 +77,6 @@ namespace Components.Debug
                 }
             }
         }
-
 
         private Vector3 ToVector(IntPoint point)
         {
