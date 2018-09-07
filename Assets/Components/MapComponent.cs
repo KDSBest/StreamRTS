@@ -5,7 +5,6 @@ using ClipperLib;
 using LibTessDotNet;
 using Navigation;
 using UnityEngine;
-using Type = Navigation.Type;
 
 namespace Components.Debug
 {
@@ -14,9 +13,12 @@ namespace Components.Debug
         public bool DebugClipper = true;
         public bool DebugTriangulation = true;
         public bool DebugGrid = true;
-        public bool DebugUpdateFrame = true;
 
         private Map map;
+        private List<List<NavigationEdge>> buildings = new List<List<NavigationEdge>>();
+        private List<GameObject> buildingGameObjects = new List<GameObject>();
+
+        public GameObject DebugBuilding;
 
         public void Start()
         {
@@ -56,22 +58,63 @@ namespace Components.Debug
             return true;
         }
 
-
         public void Update()
         {
-            if (DebugUpdateFrame)
+            if (Input.GetMouseButtonUp(0))
             {
-                NavigationFloorComponent floorObject;
-                NavigationStaticObjectComponent[] staticObjects;
+                ChangeBuildings(true);
+            }
+            else if (Input.GetMouseButtonUp(1))
+            {
+                ChangeBuildings(false);
+            }
+        }
 
-                if (!SearchFloorAndStaticObjects(out floorObject, out staticObjects))
-                    return;
+        private void ChangeBuildings(bool isAdd)
+        {
+            var mainCam = GameObject.FindObjectOfType<Camera>();
+            var ray = mainCam.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hitInfo;
+            if (Physics.Raycast(ray, out hitInfo))
+            {
+                if (isAdd)
+                {
+                    var newBuilding = new List<NavigationEdge>()
+                    {
+                        new NavigationEdge(new IntPoint((int) hitInfo.point.x, (int) hitInfo.point.z),
+                            new IntPoint((int) hitInfo.point.x + 10, (int) hitInfo.point.z + 10))
+                    };
 
-                NavigationPolygons staticObjectsPoly;
-                NavigationPolygon floorObjectsPoly;
-                ProzessFloorAndStaticObjects(floorObject, staticObjects, out staticObjectsPoly, out floorObjectsPoly);
+                    if (map.AddDynamicObject(newBuilding))
+                    {
+                        var newBuildingGo = GameObject.Instantiate(DebugBuilding);
 
-                map = new Map(floorObjectsPoly, staticObjectsPoly);
+                        newBuildingGo.transform.position = new Vector3(
+                            newBuilding[0].A.X + (newBuilding[0].B.X - newBuilding[0].A.X) / 2, 1,
+                            newBuilding[0].A.Y + (newBuilding[0].B.Y - newBuilding[0].A.Y) / 2);
+                        var size = newBuilding[0].GetSize();
+                        newBuildingGo.transform.localScale = new Vector3(size.X, 2, size.Y);
+
+                        this.buildings.Add(newBuilding);
+                        this.buildingGameObjects.Add(newBuildingGo);
+                    }
+                    else
+                    {
+                        UnityEngine.Debug.Log("Can't Build Here!");
+                    }
+                }
+                else
+                {
+                    if (buildings.Count > 0)
+                    {
+                        if (map.RemoveDynamicObject(buildings[0]))
+                        {
+                            GameObject.Destroy(buildingGameObjects[0]);
+                            buildings.RemoveAt(0);
+                            buildingGameObjects.RemoveAt(0);
+                        }
+                    }
+                }
             }
         }
 
@@ -104,9 +147,13 @@ namespace Components.Debug
             {
                 foreach (var cell in map.Grid.Cells)
                 {
-                    if (cell.Type == Type.Walkable)
+                    if (cell.Type == GridCellType.Free)
                     {
                         Gizmos.color = Color.green;
+                    }
+                    else if(cell.Type == GridCellType.Building)
+                    {
+                        Gizmos.color = Color.blue;
                     }
                     else
                     {
@@ -133,47 +180,23 @@ namespace Components.Debug
 
         private static void DrawPolygons(NavigationPolygons polygons, Color color)
         {
-            Dictionary<int, List<int>> usedPoints = new Dictionary<int, List<int>>();
-
             foreach (var polygon in polygons)
             {
-                DrawPolygon(polygon, color, usedPoints);
+                DrawPolygon(polygon, color);
             }
         }
 
-        private static void DrawPolygon(NavigationPolygon region, Color color, Dictionary<int, List<int>> usedPoints)
+        private static void DrawPolygon(NavigationPolygon region, Color color)
         {
             Gizmos.color = color;
             var p0 = region[region.Count - 1];
             var p1 = region[0];
             Gizmos.DrawLine(new Vector3(p0.X, 0, p0.Y), new Vector3(p1.X, 0, p1.Y));
-            AddPoint(usedPoints, p0);
             for (int i = 1; i < region.Count; i++)
             {
                 p0 = region[i - 1];
                 p1 = region[i];
                 Gizmos.DrawLine(new Vector3(p0.X, 0, p0.Y), new Vector3(p1.X, 0, p1.Y));
-
-                AddPoint(usedPoints, p0);
-            }
-        }
-
-        private static void AddPoint(Dictionary<int, List<int>> usedPoints, IntPoint p)
-        {
-            if(!usedPoints.ContainsKey(p.X))
-            {
-                usedPoints.Add(p.X, new List<int>()
-                {
-                    p.Y
-                });
-
-            }
-            else
-            {
-                if(usedPoints[p.X].Contains(p.Y))
-                    // throw new Exception("Found the issue!");
-
-                usedPoints[p.X].Add(p.Y);
             }
         }
 

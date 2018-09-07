@@ -33,5 +33,17 @@ namespace Navigation
 
             return new NavigationEdge(min, max);
         }
+
+        public NavigationPolygon DeepCopy()
+        {
+            NavigationPolygon copy = new NavigationPolygon(this.Count);
+
+            for (var i = 0; i < this.Count; i++)
+            {
+                copy.Add(this[i].DeepCopy());
+            }
+
+            return copy;
+        }
     }
 }

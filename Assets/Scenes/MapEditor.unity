@@ -1633,6 +1633,8 @@ MonoBehaviour:
   DebugTriangulation: 1
   DebugGrid: 1
   DebugUpdateFrame: 1
+  DebugBuilding: {fileID: 1231657840548228, guid: 8c4fe3b4e1574ba47baa52c86f41dc8f,
+    type: 2}
 --- !u!4 &1547273949
 Transform:
   m_ObjectHideFlags: 0
@@ -2006,7 +2008,7 @@ Transform:
   m_GameObject: {fileID: 2057358454}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1000, y: 1, z: 1000}
+  m_LocalScale: {x: 100, y: 1, z: 100}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2

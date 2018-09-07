@@ -1,23 +1,16 @@
 ﻿namespace Navigation
 {
-    public enum Type
-    {
-        Blocked,
-        Walkable
-    }
-    public struct GridCell
+    public class GridCell
     {
         public int X;
         public int Y;
-        public Type Type;
-        public int TriangleIndex;
+        public GridCellType Type;
 
         public GridCell(int x, int y)
         {
-            Type = Type.Blocked;
+            Type = GridCellType.Blocked;
             X = x;
             Y = y;
-            TriangleIndex = -1;
         }
     }
 }

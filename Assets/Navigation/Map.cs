@@ -6,16 +6,15 @@ using System.Linq;
 using ClipperLib;
 using LibTessDotNet;
 using UnityEngine;
+using Debug = System.Diagnostics.Debug;
 
 namespace Navigation
 {
     public class Map
     {
-        private Clipper clipper = new Clipper();
-
         private NavigationPolygon floor;
         private NavigationPolygons staticObjects;
-        private NavigationPolygons dynamicObjects = new NavigationPolygons();
+        private List<List<NavigationEdge>> dynamicObjects = new List<List<NavigationEdge>>();
         private NavigationPolygons floorWithStaticObjects = new NavigationPolygons();
 
         public NavigationPolygons FloorWithDynamicObjects = new NavigationPolygons();
@@ -36,14 +35,98 @@ namespace Navigation
 
             Triangulate();
 
-            Grid.Initialize(floor, NavMesh);
+            Grid.Initialize(floor);
+
+            Grid.PlaceStaticObjects(staticObjects.ConvertAll(x => x.GetBounding()).ToList());
+        }
+
+        /// <summary>
+        /// Adds the dynamic object.
+        /// </summary>
+        /// <param name="polygons">The polygons:
+        /// has to be aligned with x- and y-axies</param>
+        /// <returns></returns>
+        public bool AddDynamicObject(List<NavigationEdge> polygons)
+        {
+            bool isSuccessful = Grid.PlaceDynamicObjects(polygons);
+
+            if (isSuccessful)
+            {
+                dynamicObjects.Add(polygons);
+
+                Clip(FloorWithDynamicObjects, polygons);
+
+                Triangulate();
+            }
+
+            return isSuccessful;
+        }
+
+        public bool RemoveDynamicObject(List<NavigationEdge> polygons)
+        {
+            bool isSuccessful = Grid.RemoveDynamicObjects(polygons);
+
+            if (isSuccessful)
+            {
+                dynamicObjects.Remove(polygons);
+
+                Union(FloorWithDynamicObjects, polygons);
+
+                Triangulate();
+            }
+
+            return isSuccessful;
+        }
+
+        private void Clip(NavigationPolygons floor, List<NavigationEdge> dynamicObject)
+        {
+            if (dynamicObject.Count == 0)
+            {
+                FloorWithDynamicObjects = floorWithStaticObjects.DeepCopy();
+            }
+            else
+            {
+                Clipper clipper = new Clipper();
+                if (!clipper.AddPaths(floor, PolyType.ptSubject, true))
+                    throw new Exception("Can't add Paths (Subject).");
+
+                if (!clipper.AddPaths(new NavigationPolygons(dynamicObject.ConvertAll(x => x.BoundingBox())), PolyType.ptClip, true))
+                    throw new Exception("Can't add Paths (Clip).");
+
+                NavigationPolygons result = new NavigationPolygons();
+                if (!clipper.Execute(ClipType.ctDifference, result, PolyFillType.pftNonZero))
+                    throw new Exception("Can't clip dynamicObjects.");
+                FloorWithDynamicObjects = result;
+            }
+        }
+
+        private void Union(NavigationPolygons floor, List<NavigationEdge> dynamicObject)
+        {
+            if (dynamicObject.Count == 0)
+            {
+                return;
+            }
+
+            Clipper clipper = new Clipper();
+            if (!clipper.AddPaths(floor, PolyType.ptSubject, true))
+                throw new Exception("Can't add Paths (Subject).");
+
+            if (!clipper.AddPaths(new NavigationPolygons(dynamicObject.ConvertAll(x => x.BoundingBox())), PolyType.ptClip, true))
+                throw new Exception("Can't add Paths (Clip).");
+
+            NavigationPolygons result = new NavigationPolygons();
+            if (!clipper.Execute(ClipType.ctUnion, result, PolyFillType.pftNonZero))
+                throw new Exception("Can't clip dynamicObjects.");
+            FloorWithDynamicObjects = result;
         }
 
         private void Clip(NavigationPolygon floor, NavigationPolygons staticObjects)
         {
+            Clipper clipper = new Clipper();
             if (!clipper.AddPath(floor, PolyType.ptSubject, true))
                 throw new Exception("Can't add Paths (Subject).");
-            if (!clipper.AddPaths(staticObjects, PolyType.ptClip, true))
+
+            if (staticObjects.Count > 0 && !clipper.AddPaths(staticObjects, PolyType.ptClip, true))
                 throw new Exception("Can't add Paths (Clip).");
 
             // we do it twice (it's easier than deep copy the polygons), since this is loading screen time... We don't mind performance too much here
@@ -70,18 +153,6 @@ namespace Navigation
                 NavMesh.AddContour(contour, ContourOrientation.Original);
             }
 
-            //NavMesh = polygons[polygons.Count - 1];
-            //for (int i = 0; i < polygons.Count - 1; i++)
-            //{
-            //    NavMesh.AddHole(polygons[i]);
-            //}
-
-            // Add the contour with a specific orientation, use "Original" if you want to keep the input orientation.
-
-            // Tessellate!
-            // The winding rule determines how the different contours are combined together.
-            // See http://www.glprogramming.com/red/chapter11.html (section "Winding Numbers and Winding Rules") for more information.
-            // If you want triangles as output, you need to use "Polygons" type as output and 3 vertices per polygon.
             NavMesh.Tessellate(LibTessDotNet.WindingRule.Positive, LibTessDotNet.ElementType.Polygons, 3);
         }
     }

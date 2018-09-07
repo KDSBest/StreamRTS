@@ -42,6 +42,7 @@
 // make it workable with int
 // added cross product and math stuff
 // add get hash code function
+// add deep copy to IntPoint
 
 #define use_int32
 
@@ -367,6 +368,14 @@ namespace ClipperLib
             return X.GetHashCode() ^ Y.GetHashCode();
         }
 
+        /// <summary>
+        /// Deeps the copy.
+        /// </summary>
+        /// <returns></returns>
+        public IntPoint DeepCopy()
+        {
+            return new IntPoint(X, Y);
+        }
     }// end struct IntPoint
 
     public struct IntRect

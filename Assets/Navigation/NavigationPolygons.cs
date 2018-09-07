@@ -13,5 +13,22 @@ namespace Navigation
         {
 
         }
+
+        public NavigationPolygons(IEnumerable<NavigationPolygon> polygons)
+        {
+            this.AddRange(polygons);
+        }
+
+        public NavigationPolygons DeepCopy()
+        {
+            NavigationPolygons copy = new NavigationPolygons(this.Count);
+
+            for (var i = 0; i < this.Count; i++)
+            {
+                copy.Add(this[i].DeepCopy());
+            }
+
+            return copy;
+        }
     }
 }

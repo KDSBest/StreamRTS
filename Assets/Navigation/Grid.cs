@@ -17,57 +17,95 @@ namespace Navigation
         public List<GridCell> Cells = new List<GridCell>();
         public NavigationEdge Bounding;
 
-        public void Initialize(NavigationPolygon floor, Tess triangulationPoly)
+        public void Initialize(NavigationPolygon floor)
         {
             Bounding = floor.GetBounding();
 
-            Stopwatch sw = new Stopwatch();
-
             Cells.Clear();
 
-            sw.Start();
-            GridFindTrianglesJob job = new GridFindTrianglesJob();
-
-            int jobCount = (Bounding.B.X - Bounding.A.X + 1) * (Bounding.B.Y - Bounding.A.Y + 1);
-            int cellCount = (Bounding.B.X - Bounding.A.X + 1) * (Bounding.B.Y - Bounding.A.Y + 1);
-            var triangles = new NavigationTriangle[triangulationPoly.ElementCount];
-            for(int i = 0; i < triangulationPoly.ElementCount; i++)
+            for (int y = Bounding.A.Y; y < Bounding.B.Y; y++)
             {
-                triangles[i] = triangulationPoly.ToNavigationTriangle(i);
-            }
-
-            job.StartX = Bounding.A.X;
-            job.StartY = Bounding.A.Y;
-            job.MaxX = (Bounding.B.X - Bounding.A.X + 1);
-            job.Triangles = new NativeArray<NavigationTriangle>(triangles, Allocator.TempJob);
-            job.TriangleIndexes = new NativeArray<int>(jobCount, Allocator.Persistent);
-            var handle = job.Schedule(jobCount, 32);
-            handle.Complete();
-
-            for (int x = 0; x < Bounding.B.X - Bounding.A.X; x++)
-            {
-                for (int y = 0; y < Bounding.B.Y - Bounding.A.Y; y++)
+                for (int x = Bounding.A.X; x < Bounding.B.X; x++)
                 {
-                    int index = y * job.MaxX + x;
-                    int index1 = (y+ 1) * job.MaxX + x;
-
-                    int triIdx = job.TriangleIndexes[index];
-                    int triIdx1 = job.TriangleIndexes[index + 1];
-                    int triIdx2 = job.TriangleIndexes[index1];
-                    int triIdx3 = job.TriangleIndexes[index1 + 1];
-
-                    Cells.Add(new GridCell(x + job.StartY, y + job.StartY)
+                    Cells.Add(new GridCell(x, y)
                     {
-                        Type = triIdx == -1 || triIdx1 == -1 || triIdx2 == -1 || triIdx3 == -1 ? Type.Blocked : Type.Walkable,
-                        TriangleIndex = triIdx
+                        Type = GridCellType.Free
                     });
                 }
             }
-            job.Triangles.Dispose();
-            job.TriangleIndexes.Dispose();
-            sw.Stop();
-            Debug.Log("Job: " + sw.ElapsedTicks + " ticks " + sw.ElapsedMilliseconds + " ms Triangles: " + triangulationPoly.ElementCount + " GridSize: " + (Bounding.B.X - Bounding.A.X) * (Bounding.B.Y - Bounding.A.Y));
+        }
 
+        public void PlaceStaticObjects(List<NavigationEdge> polygons)
+        {
+            var maxX = Bounding.B.X - Bounding.A.X;
+
+            foreach (var polygon in polygons)
+            {
+                var polyStartX = Math.Max(polygon.A.X, Bounding.A.X) - Bounding.A.X;
+                var polyStartY = Math.Max(polygon.A.Y, Bounding.A.Y) - Bounding.A.Y;
+                var polyLenX = Math.Min(polygon.B.X, Bounding.B.X) - Bounding.A.X;
+                var polyLenY = Math.Min(polygon.B.Y, Bounding.B.Y) - Bounding.A.Y;
+
+                for (int x = polyStartX; x < polyLenX; x++)
+                {
+                    for (int y = polyStartY; y < polyLenY; y++)
+                    {
+                        Cells[x + y * maxX].Type = GridCellType.Blocked;
+                    }
+                }
+            }
+        }
+
+        public bool PlaceDynamicObjects(List<NavigationEdge> polygons)
+        {
+            return SwitchCellType(polygons, GridCellType.Free, GridCellType.Building);
+        }
+
+        public bool RemoveDynamicObjects(List<NavigationEdge> polygons)
+        {
+            return SwitchCellType(polygons, GridCellType.Building, GridCellType.Free);
+        }
+
+        private bool SwitchCellType(List<NavigationEdge> polygons, GridCellType expectedType, GridCellType resultType)
+        {
+            var maxX = Bounding.B.X - Bounding.A.X;
+
+            foreach (var polygon in polygons)
+            {
+                var polyStartX = Math.Max(polygon.A.X, Bounding.A.X) - Bounding.A.X;
+                var polyStartY = Math.Max(polygon.A.Y, Bounding.A.Y) - Bounding.A.Y;
+                var polyLenX = Math.Min(polygon.B.X, Bounding.B.X) - Bounding.A.X;
+                var polyLenY = Math.Min(polygon.B.Y, Bounding.B.Y) - Bounding.A.Y;
+
+                for (int x = polyStartX; x < polyLenX; x++)
+                {
+                    for (int y = polyStartY; y < polyLenY; y++)
+                    {
+                        if (Cells[x + y * maxX].Type != expectedType)
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            foreach (var polygon in polygons)
+            {
+                var polyStartX = Math.Max(polygon.A.X, Bounding.A.X) - Bounding.A.X;
+                var polyStartY = Math.Max(polygon.A.Y, Bounding.A.Y) - Bounding.A.Y;
+                var polyLenX = Math.Min(polygon.B.X, Bounding.B.X) - Bounding.A.X;
+                var polyLenY = Math.Min(polygon.B.Y, Bounding.B.Y) - Bounding.A.Y;
+
+                for (int x = polyStartX; x < polyLenX; x++)
+                {
+                    for (int y = polyStartY; y < polyLenY; y++)
+                    {
+                        Cells[x + y * maxX].Type = resultType;
+                    }
+                }
+            }
+
+            return true;
         }
     }
 }
