@@ -16,9 +16,6 @@ namespace Components.Debug
         public bool DebugGrid = true;
         public bool DebugUpdateFrame = true;
 
-        // TODO: Let Map generate all funnel sizes needed!
-        public int FunnelSize = 0;
-
         private Map map;
 
         public void Start()
@@ -44,7 +41,7 @@ namespace Components.Debug
             staticObjectsPoly = new NavigationPolygons();
             foreach (var staticObj in staticObjects)
             {
-                staticObjectsPoly.Add(ToPolygon(staticObj.gameObject, FunnelSize));
+                staticObjectsPoly.Add(ToPolygon(staticObj.gameObject, 0));
             }
         }
 
