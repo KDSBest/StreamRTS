@@ -30,12 +30,13 @@
 ** libtess2: Mikko Mononen, http://code.google.com/p/libtess2/.
 ** LibTessDotNet: Remi Gillig, https://github.com/speps/LibTessDotNet
  * ksetiono: Single -> Int32
+ *              added ToIntPoint
 */
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-
+using ClipperLib;
 using Real = System.Int32;
 namespace LibTessDotNet
 {
@@ -100,6 +101,11 @@ namespace LibTessDotNet
         public override string ToString()
         {
             return string.Format("{0}, {1}, {2}", X, Y, Z);
+        }
+
+        public IntPoint ToIntPoint()
+        {
+            return new IntPoint(X, Y);
         }
     }
 

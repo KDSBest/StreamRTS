@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Assets.Navigation;
+using Assets.Navigation.AStar;
 using ClipperLib;
 using LibTessDotNet;
 using UnityEngine;
@@ -16,9 +18,10 @@ namespace Navigation
         private NavigationPolygons staticObjects;
         private List<List<NavigationEdge>> dynamicObjects = new List<List<NavigationEdge>>();
         private NavigationPolygons floorWithStaticObjects = new NavigationPolygons();
-
+        
+        public AStar Pathfinding;
         public NavigationPolygons FloorWithDynamicObjects = new NavigationPolygons();
-        public Tess NavMesh;
+        public NavigationMesh NavigationMesh = new NavigationMesh();
         public Grid Grid = new Grid();
 
         public Map(NavigationPolygon floor, NavigationPolygons staticObjects)
@@ -33,7 +36,7 @@ namespace Navigation
         {
             Clip(floor, staticObjects);
 
-            Triangulate();
+            OnFloorWithDynamicObjectsChanged();
 
             Grid.Initialize(floor);
 
@@ -56,7 +59,7 @@ namespace Navigation
 
                 Clip(FloorWithDynamicObjects, polygons);
 
-                Triangulate();
+                OnFloorWithDynamicObjectsChanged();
             }
 
             return isSuccessful;
@@ -72,10 +75,17 @@ namespace Navigation
 
                 Union(FloorWithDynamicObjects, polygons);
 
-                Triangulate();
+                OnFloorWithDynamicObjectsChanged();
             }
 
             return isSuccessful;
+        }
+
+        private void OnFloorWithDynamicObjectsChanged()
+        {
+            NavigationMesh.Initialize(FloorWithDynamicObjects);
+            FloorWithDynamicObjects.CalculateConstrainedEdges();
+            Pathfinding = new AStar(NavigationMesh, FloorWithDynamicObjects);
         }
 
         private void Clip(NavigationPolygons floor, List<NavigationEdge> dynamicObject)
@@ -137,23 +147,6 @@ namespace Navigation
                 throw new Exception("Can't clip floorWithStaticObjects.");
 
             clipper.Reset();
-        }
-
-        private void Triangulate()
-        {
-            NavMesh = new Tess();
-
-            for (int polyIndex = 0; polyIndex < FloorWithDynamicObjects.Count; polyIndex++)
-            {
-                var contour = new List<ContourVertex>();
-                foreach (var p in FloorWithDynamicObjects[polyIndex])
-                {
-                    contour.Add(new ContourVertex(new Vec3(p.X, p.Y, 0), polyIndex));
-                }
-                NavMesh.AddContour(contour, ContourOrientation.Original);
-            }
-
-            NavMesh.Tessellate(LibTessDotNet.WindingRule.Positive, LibTessDotNet.ElementType.Polygons, 3);
         }
     }
 

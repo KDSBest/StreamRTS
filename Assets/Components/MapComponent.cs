@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using Assets.Navigation.AStar;
 using ClipperLib;
 using LibTessDotNet;
 using Navigation;
@@ -13,12 +14,16 @@ namespace Components.Debug
         public bool DebugClipper = true;
         public bool DebugTriangulation = true;
         public bool DebugGrid = true;
+        public bool DebugPath = true;
 
         private Map map;
         private List<List<NavigationEdge>> buildings = new List<List<NavigationEdge>>();
         private List<GameObject> buildingGameObjects = new List<GameObject>();
 
         public GameObject DebugBuilding;
+
+        public GameObject PathA;
+        public GameObject PathB;
 
         public void Start()
         {
@@ -131,11 +136,11 @@ namespace Components.Debug
             if (DebugTriangulation)
             {
                 Gizmos.color = Color.magenta;
-                for (int i = 0; i < map.NavMesh.ElementCount; i++)
+                for (int i = 0; i < map.NavigationMesh.TesselationAlgorithm.ElementCount; i++)
                 {
-                    var v0 = map.NavMesh.Vertices[map.NavMesh.Elements[i * 3]].Position;
-                    var v1 = map.NavMesh.Vertices[map.NavMesh.Elements[i * 3 + 1]].Position;
-                    var v2 = map.NavMesh.Vertices[map.NavMesh.Elements[i * 3 + 2]].Position;
+                    var v0 = map.NavigationMesh.TesselationAlgorithm.Vertices[map.NavigationMesh.TesselationAlgorithm.Elements[i * 3]].Position;
+                    var v1 = map.NavigationMesh.TesselationAlgorithm.Vertices[map.NavigationMesh.TesselationAlgorithm.Elements[i * 3 + 1]].Position;
+                    var v2 = map.NavigationMesh.TesselationAlgorithm.Vertices[map.NavigationMesh.TesselationAlgorithm.Elements[i * 3 + 2]].Position;
                     Gizmos.DrawLine(ToVector(v0), ToVector(v1));
                     Gizmos.DrawLine(ToVector(v1), ToVector(v2));
                     Gizmos.DrawLine(ToVector(v2), ToVector(v0));
@@ -166,6 +171,29 @@ namespace Components.Debug
                     Gizmos.DrawLine(ToVector(new IntPoint(cell.X + 1, cell.Y + 1)), ToVector(new IntPoint(cell.X, cell.Y + 1)));
                 }
             }
+
+            if (DebugPath)
+            {
+                if (map.Pathfinding != null)
+                {
+                    var from = new IntPoint((int) PathA.transform.position.x, (int) PathA.transform.position.z);
+                    var to = new IntPoint((int) PathB.transform.position.x, (int) PathB.transform.position.z);
+
+                    Gizmos.DrawLine(ToVector(from), ToVector(to));
+
+                    var path = map.Pathfinding.CalculatePath(from, to);
+
+                    if (path != null)
+                    {
+                        Gizmos.color = Color.yellow;
+                        for (int i = 0; i < path.Count - 1; i++)
+                        {
+                            Gizmos.DrawLine(ToVector(path[i].Position), ToVector(path[i + 1].Position));
+                        }
+                    }
+                }
+            }
+
         }
 
         private Vector3 ToVector(Vec3 point)

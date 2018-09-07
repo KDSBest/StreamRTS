@@ -30,5 +30,28 @@ namespace Navigation
 
             return copy;
         }
+
+        public EdgeIntersectionResult CalculateAnyIntersection(NavigationEdge edge)
+        {
+            foreach (var poly in this)
+            {
+                foreach (var constrainedEdge in poly.ConstraintedEdges)
+                {
+                    var result = edge.CalculateIntersection(constrainedEdge);
+                    if (result.SegmentsIntersect)
+                        return result;
+                }
+            }
+
+            return new EdgeIntersectionResult();
+        }
+
+        public void CalculateConstrainedEdges()
+        {
+            foreach (var polygon in this)
+            {
+                polygon.CalculateConstraintedEdges();
+            }
+        }
     }
 }

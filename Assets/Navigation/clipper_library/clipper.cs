@@ -43,6 +43,7 @@
 // added cross product and math stuff
 // add get hash code function
 // add deep copy to IntPoint
+// IntPoint operators
 
 #define use_int32
 
@@ -340,6 +341,25 @@ namespace ClipperLib
         public static IntPoint operator -(IntPoint a, IntPoint b)
         {
             return new IntPoint(a.X - b.X, a.Y - b.Y);
+        }
+
+        public static IntPoint operator +(IntPoint a, IntPoint b)
+        {
+            return new IntPoint(a.X + b.X, a.Y + b.Y);
+        }
+        public static IntPoint operator *(IntPoint a, int b)
+        {
+            return new IntPoint(a.X * b, a.Y * b);
+        }
+
+        public static IntPoint operator /(IntPoint a, int b)
+        {
+            return new IntPoint(a.X / b, a.Y / b);
+        }
+
+        public int ManhattanHeuristic()
+        {
+            return Math.Abs(X) + Math.Abs(Y);
         }
 
         public int CrossProduct(IntPoint b)

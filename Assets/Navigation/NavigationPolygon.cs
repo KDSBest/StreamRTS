@@ -8,6 +8,8 @@ namespace Navigation
 {
     public class NavigationPolygon : List<IntPoint>
     {
+        public List<NavigationEdge> ConstraintedEdges = new List<NavigationEdge>();
+
         public NavigationPolygon()
         {
 
@@ -16,6 +18,23 @@ namespace Navigation
         public NavigationPolygon(int cnt) : base(cnt)
         {
 
+        }
+
+        public void CalculateConstraintedEdges()
+        {
+            ConstraintedEdges.Clear();
+            if (this.Count < 2)
+                return;
+
+            var p0 = this[this.Count - 1];
+            var p1 = this[0];
+            ConstraintedEdges.Add(new NavigationEdge(p0, p1));
+            for (int i = 1; i < this.Count; i++)
+            {
+                p0 = this[i - 1];
+                p1 = this[i];
+                ConstraintedEdges.Add(new NavigationEdge(p0, p1));
+            }
         }
 
         public NavigationEdge GetBounding()
