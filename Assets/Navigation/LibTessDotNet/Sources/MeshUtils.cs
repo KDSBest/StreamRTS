@@ -36,13 +36,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-#if DOUBLE
-using Real = System.Double;
-namespace LibTessDotNet.Double
-#else
 using Real = System.Int32;
 namespace LibTessDotNet
-#endif
 {
     public struct Vec3
     {

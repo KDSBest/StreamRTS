@@ -33,11 +33,7 @@
 
 using System.Diagnostics;
 
-#if DOUBLE
-namespace LibTessDotNet.Double
-#else
 namespace LibTessDotNet
-#endif
 {
     internal class Mesh : Pooled<Mesh>
     {
