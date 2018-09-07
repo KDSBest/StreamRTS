@@ -3,19 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ClipperLib;
-using Poly2Tri;
+using LibTessDotNet;
 
 namespace Navigation
 {
-    public static class DelaunayTriangleExtensions
+    public static class TessExtensions
     {
-        public static NavigationTriangle ToNavigationTriangle(this DelaunayTriangle triangle)
+        public static NavigationTriangle ToNavigationTriangle(this Tess navMesh, int i)
         {
+            var v0 = navMesh.Vertices[navMesh.Elements[i * 3]].Position;
+            var v1 = navMesh.Vertices[navMesh.Elements[i * 3 + 1]].Position;
+            var v2 = navMesh.Vertices[navMesh.Elements[i * 3 + 2]].Position;
             return new NavigationTriangle()
             {
-                U = new IntPoint(triangle.Points[0].X, triangle.Points[0].Y),
-                V = new IntPoint(triangle.Points[1].X, triangle.Points[1].Y),
-                W = new IntPoint(triangle.Points[2].X, triangle.Points[2].Y)
+                U = new IntPoint(v0.X, v0.Y),
+                V = new IntPoint(v1.X, v1.Y),
+                W = new IntPoint(v2.X, v2.Y)
             };
         }
     }

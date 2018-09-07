@@ -11,13 +11,13 @@ namespace Navigation
 
         public static bool IsPointInTriangle(this NavigationTriangle triangle, IntPoint p)
         {
-            bool b1 = Sign(p, triangle.U, triangle.V) < 0.0f;
-            bool b2 = Sign(p, triangle.V, triangle.W) < 0.0f;
+            bool b1 = Sign(p, triangle.U, triangle.V) < 0;
+            bool b2 = Sign(p, triangle.V, triangle.W) < 0;
 
             if (b1 != b2)
                 return false;
 
-            bool b3 = Sign(p, triangle.W, triangle.U) < 0.0f;
+            bool b3 = Sign(p, triangle.W, triangle.U) < 0;
 
             return b2 == b3;
         }

@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using ClipperLib;
 using LibTessDotNet;
-using Poly2Tri;
 using UnityEngine;
 
 namespace Navigation
@@ -37,7 +36,7 @@ namespace Navigation
 
             Triangulate();
 
-            //Grid.Initialize(floor, NavMesh);
+            Grid.Initialize(floor, NavMesh);
         }
 
         private void Clip(NavigationPolygon floor, NavigationPolygons staticObjects)

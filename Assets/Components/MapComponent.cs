@@ -4,7 +4,6 @@ using System.Linq.Expressions;
 using ClipperLib;
 using LibTessDotNet;
 using Navigation;
-using Poly2Tri;
 using UnityEngine;
 using Type = Navigation.Type;
 
@@ -131,11 +130,6 @@ namespace Components.Debug
         }
 
         private Vector3 ToVector(IntPoint point)
-        {
-            return new Vector3(point.X, 0, point.Y);
-        }
-
-        private Vector3 ToVector(TriangulationPoint point)
         {
             return new Vector3(point.X, 0, point.Y);
         }

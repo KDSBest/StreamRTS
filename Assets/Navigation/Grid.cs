@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using Poly2Tri;
+using LibTessDotNet;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
@@ -17,7 +17,7 @@ namespace Navigation
         public List<GridCell> Cells = new List<GridCell>();
         public NavigationEdge Bounding;
 
-        public void Initialize(NavigationPolygon floor, NavMeshPolygon triangulationPoly)
+        public void Initialize(NavigationPolygon floor, Tess triangulationPoly)
         {
             Bounding = floor.GetBounding();
 
@@ -30,10 +30,10 @@ namespace Navigation
 
             int jobCount = (Bounding.B.X - Bounding.A.X + 1) * (Bounding.B.Y - Bounding.A.Y + 1);
             int cellCount = (Bounding.B.X - Bounding.A.X + 1) * (Bounding.B.Y - Bounding.A.Y + 1);
-            var triangles = new NavigationTriangle[triangulationPoly.Triangles.Count];
-            for(int i = 0; i < triangulationPoly.Triangles.Count; i++)
+            var triangles = new NavigationTriangle[triangulationPoly.ElementCount];
+            for(int i = 0; i < triangulationPoly.ElementCount; i++)
             {
-                triangles[i] = triangulationPoly.Triangles[i].ToNavigationTriangle();
+                triangles[i] = triangulationPoly.ToNavigationTriangle(i);
             }
 
             job.StartX = Bounding.A.X;
@@ -66,7 +66,7 @@ namespace Navigation
             job.Triangles.Dispose();
             job.TriangleIndexes.Dispose();
             sw.Stop();
-            Debug.Log("Job: " + sw.ElapsedTicks + " ticks " + sw.ElapsedMilliseconds + " ms Triangles: " + triangulationPoly.Triangles.Count + " GridSize: " + (Bounding.B.X - Bounding.A.X) * (Bounding.B.Y - Bounding.A.Y));
+            Debug.Log("Job: " + sw.ElapsedTicks + " ticks " + sw.ElapsedMilliseconds + " ms Triangles: " + triangulationPoly.ElementCount + " GridSize: " + (Bounding.B.X - Bounding.A.X) * (Bounding.B.Y - Bounding.A.Y));
 
         }
     }
