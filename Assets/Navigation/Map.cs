@@ -27,6 +27,20 @@ namespace Navigation
             this.floor = floor;
             this.staticObjects = staticObjects;
 
+            Initialize();
+        }
+
+        private void Initialize()
+        {
+            Clip(floor, staticObjects);
+
+            Triangulate();
+
+            Grid.Initialize(floor, NavMesh);
+        }
+
+        private void Clip(NavigationPolygon floor, NavigationPolygons staticObjects)
+        {
             if (!clipper.AddPath(floor, PolyType.ptSubject, true))
                 throw new Exception("Can't add Paths (Subject).");
             if (!clipper.AddPaths(staticObjects, PolyType.ptClip, true))
@@ -40,10 +54,6 @@ namespace Navigation
                 throw new Exception("Can't clip floorWithStaticObjects.");
 
             clipper.Reset();
-
-            Triangulate();
-
-            Grid.Initialize(floor, NavMesh);
         }
 
         private void Triangulate()

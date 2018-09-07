@@ -565,6 +565,7 @@ MonoBehaviour:
   DebugClipper: 1
   DebugTriangulation: 1
   DebugGrid: 1
+  DebugUpdateFrame: 1
   FunnelSize: 1
 --- !u!4 &1547273949
 Transform:
@@ -648,7 +649,7 @@ Transform:
   m_GameObject: {fileID: 2057358454}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 50, y: 1, z: 50}
+  m_LocalScale: {x: 100, y: 1, z: 100}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2

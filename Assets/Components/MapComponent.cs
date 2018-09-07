@@ -11,6 +11,7 @@ namespace Components.Debug
         public bool DebugClipper = true;
         public bool DebugTriangulation = true;
         public bool DebugGrid = true;
+        public bool DebugUpdateFrame = true;
 
         // TODO: Let Map generate all funnel sizes needed!
         public int FunnelSize = 0;
@@ -38,6 +39,29 @@ namespace Components.Debug
         }
 
 
+        public void Update()
+        {
+            if (DebugUpdateFrame)
+            {
+                var floorObject = GameObject.FindObjectOfType<NavigationFloorComponent>();
+                if (floorObject == null)
+                    return;
+
+                var staticObjects = GameObject.FindObjectsOfType<NavigationStaticObjectComponent>();
+
+                var floorObjectsPoly = ToPolygon(floorObject.gameObject, 0);
+
+                var staticObjectsPoly = new NavigationPolygons();
+                foreach (var staticObj in staticObjects)
+                {
+                    staticObjectsPoly.Add(ToPolygon(staticObj.gameObject, FunnelSize));
+                }
+
+
+                map = new Map(floorObjectsPoly, staticObjectsPoly);
+            }
+        }
+
         public void OnDrawGizmos()
         {
             if (map == null)
@@ -59,7 +83,7 @@ namespace Components.Debug
 
             if (DebugGrid)
             {
-                foreach (var cell in map.Grid.Cells.Values)
+                foreach (var cell in map.Grid.Cells)
                 {
                     if (cell.Type == Type.Walkable)
                     {

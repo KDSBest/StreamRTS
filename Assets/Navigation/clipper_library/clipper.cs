@@ -41,6 +41,7 @@
 // Changes by ksetiono:
 // make it workable with int
 // added cross product and math stuff
+// add get hash code function
 
 #define use_int32
 
@@ -377,8 +378,7 @@ namespace ClipperLib
 
     public override int GetHashCode()
     {
-      //simply prevents a compiler warning
-      return base.GetHashCode();
+        return X.GetHashCode() ^ Y.GetHashCode();
     }
 
   }// end struct IntPoint

@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using ClipperLib;
 using Poly2Tri;
 using Unity.Collections;
 using Unity.Jobs;
@@ -13,134 +12,61 @@ using Debug = UnityEngine.Debug;
 
 namespace Navigation
 {
-    public struct GridFindTrianglesJob : IJobParallelFor
-    {
-        public NativeArray<GridCell> Cells;
-
-        [ReadOnly]
-        public NativeArray<NavigationTriangle> Triangles;
-
-        public void Execute(int i)
-        {
-            bool isOnNavMesh = false;
-            int x = Cells[i].X;
-            int y = Cells[i].Y;
-            for (int xd = 0; xd <= 1; xd++)
-            {
-                for (int yd = 0; yd <= 1; yd++)
-                {
-                    isOnNavMesh = false;
-                    for (int ii = 0; ii < Triangles.Length; ii++)
-                    {
-                        bool isInTriangle = Triangles[ii].IsPointInTriangle(new IntPoint(x + xd, y + yd));
-                        if (isInTriangle)
-                        {
-                            isOnNavMesh = true;
-                            break;
-                        }
-                    }
-
-                    if (!isOnNavMesh)
-                    {
-                        break;
-                    }
-                }
-
-                if (!isOnNavMesh)
-                {
-                    break;
-                }
-            }
-
-            Cells[i] = new GridCell(x, y)
-            {
-                Type = isOnNavMesh ? Type.Walkable : Type.Blocked
-            };
-        }
-    }
-
     public class Grid
     {
-        public Dictionary<IntPoint, GridCell> Cells = new Dictionary<IntPoint, GridCell>();
+        public List<GridCell> Cells = new List<GridCell>();
+        public NavigationEdge Bounding;
 
         public void Initialize(NavigationPolygon floor, NavMeshPolygon triangulationPoly)
         {
-            var bounding = floor.GetBounding();
-            Debug.Log("Bounding Size " + bounding.B.X + ", " + bounding.B.Y);
+            Bounding = floor.GetBounding();
+
             Stopwatch sw = new Stopwatch();
+
+            Cells.Clear();
+
             sw.Start();
-            for (int x = bounding.A.X; x < bounding.B.X; x++)
+            GridFindTrianglesJob job = new GridFindTrianglesJob();
+
+            int jobCount = (Bounding.B.X - Bounding.A.X + 1) * (Bounding.B.Y - Bounding.A.Y + 1);
+            int cellCount = (Bounding.B.X - Bounding.A.X + 1) * (Bounding.B.Y - Bounding.A.Y + 1);
+            var triangles = new NavigationTriangle[triangulationPoly.Triangles.Count];
+            for(int i = 0; i < triangulationPoly.Triangles.Count; i++)
             {
-                for (int y = bounding.A.Y; y < bounding.B.Y; y++)
+                triangles[i] = triangulationPoly.Triangles[i].ToNavigationTriangle();
+            }
+
+            job.StartX = Bounding.A.X;
+            job.StartY = Bounding.A.Y;
+            job.MaxX = (Bounding.B.X - Bounding.A.X + 1);
+            job.Triangles = new NativeArray<NavigationTriangle>(triangles, Allocator.TempJob);
+            job.TriangleIndexes = new NativeArray<int>(jobCount, Allocator.Persistent);
+            var handle = job.Schedule(jobCount, 32);
+            handle.Complete();
+
+            for (int x = 0; x < Bounding.B.X - Bounding.A.X; x++)
+            {
+                for (int y = 0; y < Bounding.B.Y - Bounding.A.Y; y++)
                 {
-                    bool isOnNavMesh = false;
+                    int index = y * job.MaxX + x;
+                    int index1 = (y+ 1) * job.MaxX + x;
 
-                    for (int xd = 0; xd <= 1; xd++)
+                    int triIdx = job.TriangleIndexes[index];
+                    int triIdx1 = job.TriangleIndexes[index + 1];
+                    int triIdx2 = job.TriangleIndexes[index1];
+                    int triIdx3 = job.TriangleIndexes[index1 + 1];
+
+                    Cells.Add(new GridCell(x + job.StartY, y + job.StartY)
                     {
-                        for (int yd = 0; yd <= 1; yd++)
-                        {
-                            isOnNavMesh = false;
-                            foreach (var triangle in triangulationPoly.Triangles)
-                            {
-                                bool isInTriangle = triangle.IsPointInTriangle(new IntPoint(x + xd, y + yd));
-                                if (isInTriangle)
-                                {
-                                    isOnNavMesh = true;
-                                    break;
-                                }
-                            }
-
-                            if (!isOnNavMesh)
-                            {
-                                break;
-                            }
-                        }
-
-                        if (!isOnNavMesh)
-                        {
-                            break;
-                        }
-                    }
-
-                    Cells.Add(new IntPoint(x, y), new GridCell(x, y)
-                    {
-                        Type = isOnNavMesh ? Type.Walkable : Type.Blocked
+                        Type = triIdx == -1 || triIdx1 == -1 || triIdx2 == -1 || triIdx3 == -1 ? Type.Blocked : Type.Walkable,
+                        TriangleIndex = triIdx
                     });
                 }
             }
-            sw.Stop();
-            Debug.Log("None Job: " + sw.ElapsedTicks + " ticks " + sw.ElapsedMilliseconds + " ms");
-            sw.Reset();
-            Cells.Clear();
-            sw.Start();
-            GridFindTrianglesJob job = new GridFindTrianglesJob();
-            List<NavigationTriangle> triables = new List<NavigationTriangle>();
-            foreach (var tri in triangulationPoly.Triangles)
-            {
-                triables.Add(tri.ToNavigationTriangle());
-            }
-            job.Triangles = new NativeArray<NavigationTriangle>(triables.ToArray(), Allocator.Persistent);
-            var positions = new List<GridCell>();
-            for (int x = bounding.A.X; x < bounding.B.X; x++)
-            {
-                for (int y = bounding.A.Y; y < bounding.B.Y; y++)
-                {
-                    positions.Add(new GridCell(x, y));
-                }
-            }
-
-            job.Cells = new NativeArray<GridCell>(positions.ToArray(), Allocator.Persistent);
-            var handle = job.Schedule(positions.Count, 32);
-            handle.Complete();
-
-            foreach (var cell in job.Cells)
-            {
-                Cells.Add(new IntPoint(cell.X, cell.Y), cell);
-            }
             job.Triangles.Dispose();
-            job.Cells.Dispose();
+            job.TriangleIndexes.Dispose();
             sw.Stop();
-            Debug.Log("Job: " + sw.ElapsedTicks + " ticks " + sw.ElapsedMilliseconds + " ms");
+            Debug.Log("Job: " + sw.ElapsedTicks + " ticks " + sw.ElapsedMilliseconds + " ms Triangles: " + triangulationPoly.Triangles.Count + " GridSize: " + (Bounding.B.X - Bounding.A.X) * (Bounding.B.Y - Bounding.A.Y));
 
         }
     }
