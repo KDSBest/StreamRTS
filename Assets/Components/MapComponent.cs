@@ -1,8 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 using ClipperLib;
+using LibTessDotNet;
 using Navigation;
 using Poly2Tri;
 using UnityEngine;
+using Type = Navigation.Type;
 
 namespace Components.Debug
 {
@@ -20,22 +24,40 @@ namespace Components.Debug
 
         public void Start()
         {
-            var floorObject = GameObject.FindObjectOfType<NavigationFloorComponent>();
-            if (floorObject == null)
+            NavigationFloorComponent floorObject;
+            NavigationStaticObjectComponent[] staticObjects;
+
+            if (!SearchFloorAndStaticObjects(out floorObject, out staticObjects))
                 return;
 
-            var staticObjects = GameObject.FindObjectsOfType<NavigationStaticObjectComponent>();
+            NavigationPolygons staticObjectsPoly;
+            NavigationPolygon floorObjectsPoly;
+            ProzessFloorAndStaticObjects(floorObject, staticObjects, out staticObjectsPoly, out floorObjectsPoly);
 
-            var floorObjectsPoly = ToPolygon(floorObject.gameObject, 0);
+            map = new Map(floorObjectsPoly, staticObjectsPoly);
+        }
 
-            var staticObjectsPoly = new NavigationPolygons();
+        private void ProzessFloorAndStaticObjects(NavigationFloorComponent floorObject,
+            NavigationStaticObjectComponent[] staticObjects, out NavigationPolygons staticObjectsPoly, out NavigationPolygon floorObjectsPoly)
+        {
+            floorObjectsPoly = ToPolygon(floorObject.gameObject, 0);
+
+            staticObjectsPoly = new NavigationPolygons();
             foreach (var staticObj in staticObjects)
             {
                 staticObjectsPoly.Add(ToPolygon(staticObj.gameObject, FunnelSize));
             }
+        }
 
+        private static bool SearchFloorAndStaticObjects(out NavigationFloorComponent floorObject, out NavigationStaticObjectComponent[] staticObjects)
+        {
+            floorObject = GameObject.FindObjectOfType<NavigationFloorComponent>();
+            staticObjects = GameObject.FindObjectsOfType<NavigationStaticObjectComponent>();
 
-            map = new Map(floorObjectsPoly, staticObjectsPoly);
+            if (floorObject == null)
+                return false;
+
+            return true;
         }
 
 
@@ -43,20 +65,15 @@ namespace Components.Debug
         {
             if (DebugUpdateFrame)
             {
-                var floorObject = GameObject.FindObjectOfType<NavigationFloorComponent>();
-                if (floorObject == null)
+                NavigationFloorComponent floorObject;
+                NavigationStaticObjectComponent[] staticObjects;
+
+                if (!SearchFloorAndStaticObjects(out floorObject, out staticObjects))
                     return;
 
-                var staticObjects = GameObject.FindObjectsOfType<NavigationStaticObjectComponent>();
-
-                var floorObjectsPoly = ToPolygon(floorObject.gameObject, 0);
-
-                var staticObjectsPoly = new NavigationPolygons();
-                foreach (var staticObj in staticObjects)
-                {
-                    staticObjectsPoly.Add(ToPolygon(staticObj.gameObject, FunnelSize));
-                }
-
+                NavigationPolygons staticObjectsPoly;
+                NavigationPolygon floorObjectsPoly;
+                ProzessFloorAndStaticObjects(floorObject, staticObjects, out staticObjectsPoly, out floorObjectsPoly);
 
                 map = new Map(floorObjectsPoly, staticObjectsPoly);
             }
@@ -68,16 +85,22 @@ namespace Components.Debug
                 return;
 
             if (DebugClipper)
+            {
                 DrawPolygons(map.FloorWithDynamicObjects, Color.green);
+            }
 
             if (DebugTriangulation)
             {
                 Gizmos.color = Color.magenta;
-                foreach (var triangle in map.NavMesh.Triangles)
+                for (int i = 0; i < map.NavMesh.ElementCount; i++)
                 {
-                    Gizmos.DrawLine(ToVector(triangle.Points[0]), ToVector(triangle.Points[1]));
-                    Gizmos.DrawLine(ToVector(triangle.Points[1]), ToVector(triangle.Points[2]));
-                    Gizmos.DrawLine(ToVector(triangle.Points[2]), ToVector(triangle.Points[0]));
+                    var v0 = map.NavMesh.Vertices[map.NavMesh.Elements[i * 3]].Position;
+                    var v1 = map.NavMesh.Vertices[map.NavMesh.Elements[i * 3 + 1]].Position;
+                    var v2 = map.NavMesh.Vertices[map.NavMesh.Elements[i * 3 + 2]].Position;
+                    Gizmos.DrawLine(ToVector(v0), ToVector(v1));
+                    Gizmos.DrawLine(ToVector(v1), ToVector(v2));
+                    Gizmos.DrawLine(ToVector(v2), ToVector(v0));
+
                 }
             }
 
@@ -102,6 +125,11 @@ namespace Components.Debug
             }
         }
 
+        private Vector3 ToVector(Vec3 point)
+        {
+            return new Vector3(point.X, 0, point.Y);
+        }
+
         private Vector3 ToVector(IntPoint point)
         {
             return new Vector3(point.X, 0, point.Y);
@@ -114,24 +142,47 @@ namespace Components.Debug
 
         private static void DrawPolygons(NavigationPolygons polygons, Color color)
         {
+            Dictionary<int, List<int>> usedPoints = new Dictionary<int, List<int>>();
+
             foreach (var polygon in polygons)
             {
-                DrawPolygon(polygon, color);
+                DrawPolygon(polygon, color, usedPoints);
             }
         }
 
-        private static void DrawPolygon(NavigationPolygon region, Color color)
+        private static void DrawPolygon(NavigationPolygon region, Color color, Dictionary<int, List<int>> usedPoints)
         {
             Gizmos.color = color;
             var p0 = region[region.Count - 1];
             var p1 = region[0];
             Gizmos.DrawLine(new Vector3(p0.X, 0, p0.Y), new Vector3(p1.X, 0, p1.Y));
-
+            AddPoint(usedPoints, p0);
             for (int i = 1; i < region.Count; i++)
             {
                 p0 = region[i - 1];
                 p1 = region[i];
                 Gizmos.DrawLine(new Vector3(p0.X, 0, p0.Y), new Vector3(p1.X, 0, p1.Y));
+
+                AddPoint(usedPoints, p0);
+            }
+        }
+
+        private static void AddPoint(Dictionary<int, List<int>> usedPoints, IntPoint p)
+        {
+            if(!usedPoints.ContainsKey(p.X))
+            {
+                usedPoints.Add(p.X, new List<int>()
+                {
+                    p.Y
+                });
+
+            }
+            else
+            {
+                if(usedPoints[p.X].Contains(p.Y))
+                    // throw new Exception("Found the issue!");
+
+                usedPoints[p.X].Add(p.Y);
             }
         }
 

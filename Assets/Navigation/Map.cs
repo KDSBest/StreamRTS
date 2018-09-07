@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using ClipperLib;
+using LibTessDotNet;
 using Poly2Tri;
 using UnityEngine;
 
@@ -19,7 +20,7 @@ namespace Navigation
         private NavigationPolygons floorWithStaticObjects = new NavigationPolygons();
 
         public NavigationPolygons FloorWithDynamicObjects = new NavigationPolygons();
-        public NavMeshPolygon NavMesh;
+        public Tess NavMesh;
         public Grid Grid = new Grid();
 
         public Map(NavigationPolygon floor, NavigationPolygons staticObjects)
@@ -36,7 +37,7 @@ namespace Navigation
 
             Triangulate();
 
-            Grid.Initialize(floor, NavMesh);
+            //Grid.Initialize(floor, NavMesh);
         }
 
         private void Clip(NavigationPolygon floor, NavigationPolygons staticObjects)
@@ -58,25 +59,31 @@ namespace Navigation
 
         private void Triangulate()
         {
-            var polygons = new List<NavMeshPolygon>();
+            NavMesh = new Tess();
 
-            foreach (var region in FloorWithDynamicObjects)
+            for (int polyIndex = 0; polyIndex < FloorWithDynamicObjects.Count; polyIndex++)
             {
-                var polygonPoints = new List<PolygonPoint>();
-                foreach (var p in region)
+                var contour = new List<ContourVertex>();
+                foreach (var p in FloorWithDynamicObjects[polyIndex])
                 {
-                    polygonPoints.Add(new PolygonPoint(p.X, p.Y));
+                    contour.Add(new ContourVertex(new Vec3(p.X, p.Y, 0), polyIndex));
                 }
-                polygons.Add(new NavMeshPolygon(polygonPoints));
+                NavMesh.AddContour(contour, ContourOrientation.Original);
             }
 
-            NavMesh = polygons[polygons.Count - 1];
-            for (int i = 0; i < polygons.Count - 1; i++)
-            {
-                NavMesh.AddHole(polygons[i]);
-            }
+            //NavMesh = polygons[polygons.Count - 1];
+            //for (int i = 0; i < polygons.Count - 1; i++)
+            //{
+            //    NavMesh.AddHole(polygons[i]);
+            //}
 
-            P2T.Triangulate(NavMesh);
+            // Add the contour with a specific orientation, use "Original" if you want to keep the input orientation.
+
+            // Tessellate!
+            // The winding rule determines how the different contours are combined together.
+            // See http://www.glprogramming.com/red/chapter11.html (section "Winding Numbers and Winding Rules") for more information.
+            // If you want triangles as output, you need to use "Polygons" type as output and 3 vertices per polygon.
+            NavMesh.Tessellate(LibTessDotNet.WindingRule.Positive, LibTessDotNet.ElementType.Polygons, 3);
         }
     }
 

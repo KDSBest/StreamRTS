@@ -30,6 +30,7 @@
  */
 
 // Changes ksetiono: double and float -> int and removing epsilon
+//                   apply bugfix
 
 namespace Poly2Tri {
 	/**
@@ -76,10 +77,32 @@ namespace Poly2Tri {
 		}
 
 		public void MeshClean( DelaunayTriangle triangle ) {
-			MeshCleanReq(triangle);
+		    MeshCleanReqNoStack(triangle);
 		}
 
-		private void MeshCleanReq( DelaunayTriangle triangle ) {
+	    private void MeshCleanReqNoStack(DelaunayTriangle triangle)
+	    {
+	        var stack = new System.Collections.Generic.Stack<DelaunayTriangle>();
+	        stack.Push(triangle);
+	        while (stack.Count > 0)
+	        {
+	            var t = stack.Pop();
+	            if (t != null && !t.IsInterior)
+	            {
+	                t.IsInterior = true;
+	                Triangulatable.AddTriangle(t);
+	                for (int i = 0; i < 3; i++)
+	                {
+	                    if (!t.EdgeIsConstrained[i])
+	                    {
+	                        stack.Push(t.Neighbors[i]);
+	                    }
+	                }
+	            }
+	        }
+	    }
+
+        private void MeshCleanReq( DelaunayTriangle triangle ) {
 			if (triangle != null && !triangle.IsInterior) {
 				triangle.IsInterior = true;
 				Triangulatable.AddTriangle(triangle);
