@@ -11,9 +11,10 @@ namespace Assets.Navigation
     public class NavigationMesh
     {
         private Dictionary<IntPoint, List<NavigationTriangle>> triangleMapping = new Dictionary<IntPoint, List<NavigationTriangle>>();
-        private List<NavigationTriangle> allTriangle = new List<NavigationTriangle>();
+        public List<NavigationTriangle> AllTriangle = new List<NavigationTriangle>();
         private Dictionary<IntPoint, NavigationTriangle> searchCache = new Dictionary<IntPoint, NavigationTriangle>();
-        public Tess TesselationAlgorithm;
+        private Tess tesselationAlgorithm;
+
         private NavigationPolygons polygons;
 
         public void Initialize(NavigationPolygons polygons)
@@ -21,28 +22,74 @@ namespace Assets.Navigation
             Reset();
 
             this.polygons = polygons;
-            Tesselation();
 
-            for (int i = 0; i < this.TesselationAlgorithm.ElementCount; i++)
+            Tesselation();
+            for (int i = 0; i < this.tesselationAlgorithm.ElementCount; i++)
             {
-                var v0 = this.TesselationAlgorithm.Vertices[this.TesselationAlgorithm.Elements[i * 3]].Position.ToIntPoint();
-                var v1 = this.TesselationAlgorithm.Vertices[this.TesselationAlgorithm.Elements[i * 3 + 1]].Position.ToIntPoint();
-                var v2 = this.TesselationAlgorithm.Vertices[this.TesselationAlgorithm.Elements[i * 3 + 2]].Position.ToIntPoint();
+                var v0 = this.tesselationAlgorithm.Vertices[this.tesselationAlgorithm.Elements[i * 3]].Position.ToIntPoint();
+                var v1 = this.tesselationAlgorithm.Vertices[this.tesselationAlgorithm.Elements[i * 3 + 1]].Position.ToIntPoint();
+                var v2 = this.tesselationAlgorithm.Vertices[this.tesselationAlgorithm.Elements[i * 3 + 2]].Position.ToIntPoint();
 
                 var triangle = new NavigationTriangle(v0, v1, v2);
+                AllTriangle.Add(triangle);
+            }
 
-                AddTriangleToPointMap(v0, triangle);
-                AddTriangleToPointMap(v1, triangle);
-                AddTriangleToPointMap(v2, triangle);
-                allTriangle.Add(triangle);
+            Refine();
+
+            foreach (var triangle in AllTriangle)
+            {
+                AddTriangleToPointMap(triangle.U, triangle);
+                AddTriangleToPointMap(triangle.V, triangle);
+                AddTriangleToPointMap(triangle.W, triangle);
             }
         }
 
+        void UpdateTriangulation(NavigationTriangle t, IntPoint p)
+        {
+            var v = new IntPoint(p);
+
+            AllTriangle.Add(new NavigationTriangle(t.U, t.V, v));
+            AllTriangle.Add(new NavigationTriangle(t.V, t.W, v));
+            AllTriangle.Add(new NavigationTriangle(t.W, t.U, v));
+            AllTriangle.Remove(t);
+        }
+
+
+        private void Refine()
+        {
+            RefineSubRoutine();
+        }
+
+        void SplitTriangle(NavigationTriangle t)
+        {
+            if (t.S0.GetLengthSquared() <= 4 || t.S1.GetLengthSquared() <= 4 || t.S2.GetLengthSquared() <= 4)
+                return;
+
+            var c = t.GetMiddlePoint();
+
+            if (t.IsPointInTriangle(c))
+            {
+                UpdateTriangulation(t, c);
+            }
+        }
+
+
+        private void RefineSubRoutine()
+        {
+            var refineTriangles = AllTriangle.ToArray().ToList();
+
+            foreach (var triangle in refineTriangles)
+            {
+                SplitTriangle(triangle);
+            }
+        }
+
+
         private void Reset()
         {
-            TesselationAlgorithm = new Tess();
+            tesselationAlgorithm = new Tess();
             triangleMapping.Clear();
-            allTriangle.Clear();
+            AllTriangle.Clear();
             searchCache.Clear();
         }
 
@@ -59,9 +106,9 @@ namespace Assets.Navigation
             if (searchCache.ContainsKey(p))
                 return searchCache[p];
 
-            for (int i = 0; i < allTriangle.Count; i++)
+            for (int i = 0; i < AllTriangle.Count; i++)
             {
-                var tri = allTriangle[i];
+                var tri = AllTriangle[i];
                 if (tri.IsPointInTriangle(p))
                 {
                     searchCache.Add(p, tri);
@@ -89,10 +136,10 @@ namespace Assets.Navigation
                 {
                     contour.Add(new ContourVertex(new Vec3(p.X, p.Y, 0), polyIndex));
                 }
-                TesselationAlgorithm.AddContour(contour, ContourOrientation.Original);
+                tesselationAlgorithm.AddContour(contour, ContourOrientation.Original);
             }
 
-            TesselationAlgorithm.Tessellate(LibTessDotNet.WindingRule.Positive, LibTessDotNet.ElementType.Polygons, 3);
+            tesselationAlgorithm.Tessellate(LibTessDotNet.WindingRule.Positive, LibTessDotNet.ElementType.Polygons, 3);
         }
     }
 }

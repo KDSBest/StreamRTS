@@ -396,6 +396,11 @@ namespace ClipperLib
         {
             return new IntPoint(X, Y);
         }
+
+        public int GetLengthSquared()
+        {
+            return X * X + Y * Y;
+        }
     }// end struct IntPoint
 
     public struct IntRect

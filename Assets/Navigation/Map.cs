@@ -83,8 +83,8 @@ namespace Navigation
 
         private void OnFloorWithDynamicObjectsChanged()
         {
-            NavigationMesh.Initialize(FloorWithDynamicObjects);
             FloorWithDynamicObjects.CalculateConstrainedEdges();
+            NavigationMesh.Initialize(FloorWithDynamicObjects);
             Pathfinding = new AStar(NavigationMesh, FloorWithDynamicObjects);
         }
 

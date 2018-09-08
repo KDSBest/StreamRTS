@@ -5,6 +5,8 @@ using Assets.Navigation.AStar;
 using ClipperLib;
 using LibTessDotNet;
 using Navigation;
+using Navigation.DeterministicMath;
+using UnityEditor;
 using UnityEngine;
 
 namespace Components.Debug
@@ -15,6 +17,7 @@ namespace Components.Debug
         public bool DebugTriangulation = true;
         public bool DebugGrid = true;
         public bool DebugPath = true;
+        public bool DebugMove = false;
 
         private Map map;
         private List<List<NavigationEdge>> buildings = new List<List<NavigationEdge>>();
@@ -24,6 +27,7 @@ namespace Components.Debug
 
         public GameObject PathA;
         public GameObject PathB;
+        private List<AStarNode> path;
 
         public void Start()
         {
@@ -73,6 +77,29 @@ namespace Components.Debug
             {
                 ChangeBuildings(false);
             }
+
+            if (DebugMove && path != null)
+            {
+                int speed = 6;
+
+                IntPoint direction = new IntPoint();
+                for (int i = 1; i < path.Count; i++)
+                {
+                    direction = path[i].Position - path[0].Position;
+                    direction = direction * speed;
+                    var lenSquared = new DeterministicInt(direction.GetLengthSquared());
+
+                    int len = DeterministicInt.Sqrt(lenSquared).IntValue;
+                    int moves = len / speed;
+                    if (moves != 0)
+                    {
+                        direction = direction / moves;
+                        break;
+                    }
+                }
+
+                PathA.transform.position += new Vector3(direction.X, 0, direction.Y) * Time.deltaTime;
+            }
         }
 
         private void ChangeBuildings(bool isAdd)
@@ -97,7 +124,7 @@ namespace Components.Debug
                         newBuildingGo.transform.position = new Vector3(
                             newBuilding[0].A.X + (newBuilding[0].B.X - newBuilding[0].A.X) / 2, 1,
                             newBuilding[0].A.Y + (newBuilding[0].B.Y - newBuilding[0].A.Y) / 2);
-                        var size = newBuilding[0].GetSize();
+                        var size = newBuilding[0].GetDirection();
                         newBuildingGo.transform.localScale = new Vector3(size.X, 2, size.Y);
 
                         this.buildings.Add(newBuilding);
@@ -136,14 +163,11 @@ namespace Components.Debug
             if (DebugTriangulation)
             {
                 Gizmos.color = Color.magenta;
-                for (int i = 0; i < map.NavigationMesh.TesselationAlgorithm.ElementCount; i++)
+                for (int i = 0; i < map.NavigationMesh.AllTriangle.Count; i++)
                 {
-                    var v0 = map.NavigationMesh.TesselationAlgorithm.Vertices[map.NavigationMesh.TesselationAlgorithm.Elements[i * 3]].Position;
-                    var v1 = map.NavigationMesh.TesselationAlgorithm.Vertices[map.NavigationMesh.TesselationAlgorithm.Elements[i * 3 + 1]].Position;
-                    var v2 = map.NavigationMesh.TesselationAlgorithm.Vertices[map.NavigationMesh.TesselationAlgorithm.Elements[i * 3 + 2]].Position;
-                    Gizmos.DrawLine(ToVector(v0), ToVector(v1));
-                    Gizmos.DrawLine(ToVector(v1), ToVector(v2));
-                    Gizmos.DrawLine(ToVector(v2), ToVector(v0));
+                    Gizmos.DrawLine(ToVector(map.NavigationMesh.AllTriangle[i].U), ToVector(map.NavigationMesh.AllTriangle[i].V));
+                    Gizmos.DrawLine(ToVector(map.NavigationMesh.AllTriangle[i].V), ToVector(map.NavigationMesh.AllTriangle[i].W));
+                    Gizmos.DrawLine(ToVector(map.NavigationMesh.AllTriangle[i].W), ToVector(map.NavigationMesh.AllTriangle[i].U));
 
                 }
             }
@@ -181,7 +205,7 @@ namespace Components.Debug
 
                     Gizmos.DrawLine(ToVector(from), ToVector(to));
 
-                    var path = map.Pathfinding.CalculatePath(from, to);
+                    path = map.Pathfinding.CalculatePath(from, to);
 
                     if (path != null)
                     {

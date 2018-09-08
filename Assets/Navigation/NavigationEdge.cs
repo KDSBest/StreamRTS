@@ -6,10 +6,15 @@ using ClipperLib;
 
 namespace Navigation
 {
-    public struct NavigationEdge
+    public class NavigationEdge
     {
         public IntPoint A;
         public IntPoint B;
+
+        public NavigationEdge()
+        {
+
+        }
 
         public NavigationEdge(IntPoint a, IntPoint b)
         {
@@ -27,10 +32,27 @@ namespace Navigation
 
             return result;
         }
+        public IntPoint Midpoint()
+        {
+            return (A + B) / 2;
+        }
 
-        public IntPoint GetSize()
+        public bool EncroachedUpon(IntPoint p)
+        {
+            if (p == A || p == B) return false;
+            var radius = (A - B).GetLengthSquared() / 2;
+            return (Midpoint() - p).GetLengthSquared() < radius;
+        }
+
+        public IntPoint GetDirection()
         {
             return B - A;
+        }
+
+        public int GetLengthSquared()
+        {
+            var size = this.GetDirection();
+            return size.X * size.X + size.Y * size.Y;
         }
 
         public EdgeIntersectionResult CalculateIntersection(NavigationEdge other)
@@ -82,6 +104,45 @@ namespace Navigation
 
             result.SegmentIntersection = new NavigationEdge(new IntPoint(this.A.X + dx12 * t1 / 100, this.A.Y + dy12 * t1 / 100), new IntPoint(other.A.X + dx34 * t2 / 100, other.A.Y + dy34 * t2 / 100));
             return result;
+        }
+
+        public static bool operator ==(NavigationEdge a, NavigationEdge b)
+        {
+            if (((object) a) == null)
+            {
+                return ((object) b) == null;
+            }
+
+            if (((object)b) == null)
+            {
+                return false;
+            }
+
+            return (a.A == b.A && a.B == b.B) || (a.A == b.B && a.B == b.A);
+        }
+
+        public static bool operator !=(NavigationEdge a, NavigationEdge b)
+        {
+            return !(a == b);
+        }
+
+        public override bool Equals(object obj)
+        {
+            NavigationEdge other = obj as NavigationEdge;
+            if (other == null)
+                return false;
+
+            return this == other;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        public bool HasPoint(IntPoint p)
+        {
+            return A == p || B == p;
         }
     }
 }

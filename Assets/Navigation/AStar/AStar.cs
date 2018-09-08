@@ -80,6 +80,11 @@ namespace Assets.Navigation.AStar
             context.ATri = navMesh.SearchTriangleForPoint(context.A);
             context.BTri = navMesh.SearchTriangleForPoint(context.B);
 
+            if (context.ATri == null || context.BTri == null)
+            {
+                return null;
+            }
+
             if (!pathCache.ContainsKey(context.ATri))
                 pathCache.Add(context.ATri, new Dictionary<NavigationTriangle, List<AStarNode>>());
             if (!pathCache.ContainsKey(context.BTri))
