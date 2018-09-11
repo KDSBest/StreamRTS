@@ -8,9 +8,9 @@ namespace Navigation
 {
     public class NavigationTriangle
     {
-        public IntPoint U;
-        public IntPoint V;
-        public IntPoint W;
+        public DeterministicVector2 U;
+        public DeterministicVector2 V;
+        public DeterministicVector2 W;
 
         public NavigationEdge S0
         {
@@ -35,13 +35,13 @@ namespace Navigation
                 return new NavigationEdge(W, U);
             }
         }
-        private static int Sign(IntPoint p1, IntPoint p2, IntPoint p3)
+        private static DeterministicInt Sign(DeterministicVector2 p1, DeterministicVector2 p2, DeterministicVector2 p3)
         {
             return (p1.X - p3.X) * (p2.Y - p3.Y) - (p2.X - p3.X) * (p1.Y - p3.Y);
         }
 
 
-        public bool IsPointInTriangle(IntPoint p)
+        public bool IsPointInTriangle(DeterministicVector2 p)
         {
             bool b1 = Sign(p, this.U, this.V) < 0;
             bool b2 = Sign(p, this.V, this.W) < 0;
@@ -54,12 +54,12 @@ namespace Navigation
             return b2 == b3;
         }
 
-        public IntPoint GetMiddlePoint()
+        public DeterministicVector2 GetMiddlePoint()
         {
             return (U + V + W) / 3;
         }
 
-        public NavigationTriangle(IntPoint u, IntPoint v, IntPoint w)
+        public NavigationTriangle(DeterministicVector2 u, DeterministicVector2 v, DeterministicVector2 w)
         {
             U = u;
             V = v;

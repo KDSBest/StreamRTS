@@ -4,13 +4,14 @@ using System.Linq;
 using System.Text;
 using ClipperLib;
 using Navigation;
+using Navigation.DeterministicMath;
 
 namespace Assets.Navigation.AStar
 {
     public class AStarNode : IPriorityQueueEntry
     {
-        public IntPoint Position;
-        private IntPoint destination;
+        public DeterministicVector2 Position;
+        private DeterministicVector2 destination;
 
         public AStarNode Parent
         {
@@ -25,7 +26,7 @@ namespace Assets.Navigation.AStar
                 if (value == null || parent == null)
                     return;
 
-                int newG = parent.G + (this.Position - parent.Position).ManhattanHeuristic();
+                DeterministicInt newG = parent.G + (this.Position - parent.Position).ManhattanHeuristic();
                 if (newG < this.G)
                 {
                     parent = value;
@@ -35,11 +36,11 @@ namespace Assets.Navigation.AStar
         }
 
         // Distance Start to Current
-        public int G = 0;
+        public DeterministicInt G = new DeterministicInt(0, true);
         private AStarNode parent;
 
         // Heuristic to Destination
-        public int H
+        public DeterministicInt H
         {
             get
             {
@@ -49,7 +50,7 @@ namespace Assets.Navigation.AStar
             }
         }
 
-        public AStarNode(IntPoint position, IntPoint destination, AStarNode parent = null)
+        public AStarNode(DeterministicVector2 position, DeterministicVector2 destination, AStarNode parent = null)
         {
             this.Position = position;
             this.destination = destination;
@@ -62,7 +63,7 @@ namespace Assets.Navigation.AStar
             }
         }
 
-        public int GetCost()
+        public DeterministicInt GetCost()
         {
             return G + H;
         }

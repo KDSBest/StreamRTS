@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ClipperLib;
+using Navigation.DeterministicMath;
 
 namespace Navigation
 {
-    public class NavigationPolygon : List<IntPoint>
+    public class NavigationPolygon : List<DeterministicVector2>
     {
         public List<NavigationEdge> ConstraintedEdges = new List<NavigationEdge>();
 
@@ -39,15 +40,15 @@ namespace Navigation
 
         public NavigationEdge GetBounding()
         {
-            var min = new IntPoint(int.MaxValue, int.MaxValue);
-            var max = new IntPoint(int.MinValue, int.MinValue);
+            var min = new DeterministicVector2(int.MaxValue, int.MaxValue);
+            var max = new DeterministicVector2(int.MinValue, int.MinValue);
 
             foreach (var p in this)
             {
-                min.X = Math.Min(p.X, min.X);
-                min.Y = Math.Min(p.Y, min.Y);
-                max.X = Math.Max(p.X, max.X);
-                max.Y = Math.Max(p.Y, max.Y);
+                min.X = DeterministicInt.Min(p.X, min.X);
+                min.Y = DeterministicInt.Min(p.Y, min.Y);
+                max.X = DeterministicInt.Max(p.X, max.X);
+                max.Y = DeterministicInt.Max(p.Y, max.Y);
             }
 
             return new NavigationEdge(min, max);

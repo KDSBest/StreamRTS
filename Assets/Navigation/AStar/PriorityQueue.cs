@@ -6,11 +6,6 @@ using ClipperLib;
 
 namespace Assets.Navigation.AStar
 {
-    public interface IPriorityQueueEntry
-    {
-        int GetCost();
-    }
-
     public class PriorityQueue<T> where T : class, IPriorityQueueEntry
     {
         private Dictionary<int, List<T>> entries = new Dictionary<int, List<T>>();
@@ -22,7 +17,7 @@ namespace Assets.Navigation.AStar
 
         public void Add(T entry)
         {
-            int cost = entry.GetCost();
+            int cost = entry.GetCost().ToInt();
 
             if (!entries.ContainsKey(cost))
             {
@@ -34,7 +29,7 @@ namespace Assets.Navigation.AStar
 
         public bool Remove(T entry)
         {
-            int cost = entry.GetCost();
+            int cost = entry.GetCost().ToInt();
 
             if (!entries.ContainsKey(cost))
             {

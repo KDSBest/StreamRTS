@@ -43,7 +43,8 @@
 // added cross product and math stuff
 // add get hash code function
 // add deep copy to IntPoint
-// IntPoint operators
+// Use my deterministic math
+// 
 
 #define use_int32
 
@@ -55,15 +56,17 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Remoting.Messaging;
 using Navigation;
+using Navigation.DeterministicMath;
+using UnityEngine.Video;
 
 namespace ClipperLib
 {
 
-    using cInt = Int32;
+    using cInt = DeterministicInt;
 
     using Path = NavigationPolygon;
     using Paths = NavigationPolygons;
-
+    using IntPoint = DeterministicVector2;
 
     //------------------------------------------------------------------------------
     // PolyTree & PolyNode classes
@@ -82,14 +85,6 @@ namespace ClipperLib
                 m_AllPolys[i] = null;
             m_AllPolys.Clear();
             m_Childs.Clear();
-        }
-
-        public PolyNode GetFirst()
-        {
-            if (m_Childs.Count > 0)
-                return m_Childs[0];
-            else
-                return null;
         }
 
         public int Total
@@ -114,26 +109,9 @@ namespace ClipperLib
         internal EndType m_endtype;
         internal List<PolyNode> m_Childs = new List<PolyNode>();
 
-        private bool IsHoleNode()
-        {
-            bool result = true;
-            PolyNode node = m_Parent;
-            while (node != null)
-            {
-                result = !result;
-                node = node.m_Parent;
-            }
-            return result;
-        }
-
         public int ChildCount
         {
             get { return m_Childs.Count; }
-        }
-
-        public Path Contour
-        {
-            get { return m_polygon; }
         }
 
         internal void AddChild(PolyNode Child)
@@ -144,37 +122,10 @@ namespace ClipperLib
             Child.m_Index = cnt;
         }
 
-        public PolyNode GetNext()
-        {
-            if (m_Childs.Count > 0)
-                return m_Childs[0];
-            else
-                return GetNextSiblingUp();
-        }
-
-        internal PolyNode GetNextSiblingUp()
-        {
-            if (m_Parent == null)
-                return null;
-            else if (m_Index == m_Parent.m_Childs.Count - 1)
-                return m_Parent.GetNextSiblingUp();
-            else
-                return m_Parent.m_Childs[m_Index + 1];
-        }
 
         public List<PolyNode> Childs
         {
             get { return m_Childs; }
-        }
-
-        public PolyNode Parent
-        {
-            get { return m_Parent; }
-        }
-
-        public bool IsHole
-        {
-            get { return IsHoleNode(); }
         }
 
         public bool IsOpen { get; set; }
@@ -314,94 +265,94 @@ namespace ClipperLib
     //------------------------------------------------------------------------------
     //------------------------------------------------------------------------------
 
-    public struct IntPoint
-    {
-        public cInt X;
-        public cInt Y;
-        public IntPoint(cInt X, cInt Y)
-        {
-            this.X = X; this.Y = Y;
-        }
+    //public struct IntPoint
+    //{
+    //    public cInt X;
+    //    public cInt Y;
+    //    public IntPoint(cInt X, cInt Y)
+    //    {
+    //        this.X = X; this.Y = Y;
+    //    }
 
-        public IntPoint(IntPoint pt)
-        {
-            this.X = pt.X; this.Y = pt.Y;
-        }
+    //    public IntPoint(IntPoint pt)
+    //    {
+    //        this.X = pt.X; this.Y = pt.Y;
+    //    }
 
-        public static bool operator ==(IntPoint a, IntPoint b)
-        {
-            return a.X == b.X && a.Y == b.Y;
-        }
+    //    public static bool operator ==(IntPoint a, IntPoint b)
+    //    {
+    //        return a.X == b.X && a.Y == b.Y;
+    //    }
 
-        public static bool operator !=(IntPoint a, IntPoint b)
-        {
-            return a.X != b.X || a.Y != b.Y;
-        }
+    //    public static bool operator !=(IntPoint a, IntPoint b)
+    //    {
+    //        return a.X != b.X || a.Y != b.Y;
+    //    }
 
-        public static IntPoint operator -(IntPoint a, IntPoint b)
-        {
-            return new IntPoint(a.X - b.X, a.Y - b.Y);
-        }
+    //    public static IntPoint operator -(IntPoint a, IntPoint b)
+    //    {
+    //        return new IntPoint(a.X - b.X, a.Y - b.Y);
+    //    }
 
-        public static IntPoint operator +(IntPoint a, IntPoint b)
-        {
-            return new IntPoint(a.X + b.X, a.Y + b.Y);
-        }
-        public static IntPoint operator *(IntPoint a, int b)
-        {
-            return new IntPoint(a.X * b, a.Y * b);
-        }
+    //    public static IntPoint operator +(IntPoint a, IntPoint b)
+    //    {
+    //        return new IntPoint(a.X + b.X, a.Y + b.Y);
+    //    }
+    //    public static IntPoint operator *(IntPoint a, int b)
+    //    {
+    //        return new IntPoint(a.X * b, a.Y * b);
+    //    }
 
-        public static IntPoint operator /(IntPoint a, int b)
-        {
-            return new IntPoint(a.X / b, a.Y / b);
-        }
+    //    public static IntPoint operator /(IntPoint a, int b)
+    //    {
+    //        return new IntPoint(a.X / b, a.Y / b);
+    //    }
 
-        public int ManhattanHeuristic()
-        {
-            return Math.Abs(X) + Math.Abs(Y);
-        }
+    //    public int ManhattanHeuristic()
+    //    {
+    //        return Math.Abs(X) + Math.Abs(Y);
+    //    }
 
-        public int CrossProduct(IntPoint b)
-        {
-            return this.X * b.Y - this.Y * b.X;
-        }
+    //    public int CrossProduct(IntPoint b)
+    //    {
+    //        return this.X * b.Y - this.Y * b.X;
+    //    }
 
-        public int DotProduct(IntPoint b)
-        {
-            return this.X * b.X + this.Y * b.Y;
-        }
+    //    public int DotProduct(IntPoint b)
+    //    {
+    //        return this.X * b.X + this.Y * b.Y;
+    //    }
 
-        public override bool Equals(object obj)
-        {
-            if (obj == null) return false;
-            if (obj is IntPoint)
-            {
-                IntPoint a = (IntPoint)obj;
-                return (X == a.X) && (Y == a.Y);
-            }
-            else return false;
-        }
+    //    public override bool Equals(object obj)
+    //    {
+    //        if (obj == null) return false;
+    //        if (obj is IntPoint)
+    //        {
+    //            IntPoint a = (IntPoint)obj;
+    //            return (X == a.X) && (Y == a.Y);
+    //        }
+    //        else return false;
+    //    }
 
-        public override int GetHashCode()
-        {
-            return X.GetHashCode() ^ Y.GetHashCode();
-        }
+    //    public override int GetHashCode()
+    //    {
+    //        return X.GetHashCode() ^ Y.GetHashCode();
+    //    }
 
-        /// <summary>
-        /// Deeps the copy.
-        /// </summary>
-        /// <returns></returns>
-        public IntPoint DeepCopy()
-        {
-            return new IntPoint(X, Y);
-        }
+    //    /// <summary>
+    //    /// Deeps the copy.
+    //    /// </summary>
+    //    /// <returns></returns>
+    //    public IntPoint DeepCopy()
+    //    {
+    //        return new IntPoint(X, Y);
+    //    }
 
-        public int GetLengthSquared()
-        {
-            return X * X + Y * Y;
-        }
-    }// end struct IntPoint
+    //    public int GetLengthSquared()
+    //    {
+    //        return X * X + Y * Y;
+    //    }
+    //}
 
     public struct IntRect
     {
@@ -443,7 +394,7 @@ namespace ClipperLib
         internal IntPoint Curr; //current (updated for every new scanbeam)
         internal IntPoint Top;
         internal IntPoint Delta;
-        internal int Dx;
+        internal DeterministicInt Dx;
         internal PolyType PolyTyp;
         internal EdgeSide Side; //side only refers to current side of solution poly
         internal int WindDelta; //1 or -1 depending on winding direction
@@ -528,13 +479,13 @@ namespace ClipperLib
 
     public class ClipperBase
     {
-        internal const int horizontal = -2000;
+        internal static readonly DeterministicInt horizontal = new DeterministicInt(-2000);
         internal const int Skip = -2;
         internal const int Unassigned = -1;
         internal static bool near_zero(int val) { return val == 0; }
 
-        public const cInt loRange = 0x7FFF;
-        public const cInt hiRange = 0x7FFF;
+        public static readonly cInt loRange = new DeterministicInt(0x7FFF);
+        public static readonly cInt hiRange = new DeterministicInt(0x7FFF);
 
         internal LocalMinima m_MinimaList;
         internal LocalMinima m_CurrentLM;
@@ -542,7 +493,6 @@ namespace ClipperLib
         internal Scanbeam m_Scanbeam;
         internal List<OutRec> m_PolyOuts;
         internal TEdge m_ActiveEdges;
-        internal bool m_UseFullRange;
         internal bool m_HasOpenPaths;
 
         //------------------------------------------------------------------------------
@@ -581,69 +531,31 @@ namespace ClipperLib
         }
         //------------------------------------------------------------------------------
 
-        internal bool PointOnLineSegment(IntPoint pt,
-            IntPoint linePt1, IntPoint linePt2, bool UseFullRange)
-        {
-            if (UseFullRange)
-                return ((pt.X == linePt1.X) && (pt.Y == linePt1.Y)) ||
-                  ((pt.X == linePt2.X) && (pt.Y == linePt2.Y)) ||
-                  (((pt.X > linePt1.X) == (pt.X < linePt2.X)) &&
-                  ((pt.Y > linePt1.Y) == (pt.Y < linePt2.Y)) &&
-                  ((Int128.Int128Mul((pt.X - linePt1.X), (linePt2.Y - linePt1.Y)) ==
-                  Int128.Int128Mul((linePt2.X - linePt1.X), (pt.Y - linePt1.Y)))));
-            else
-                return ((pt.X == linePt1.X) && (pt.Y == linePt1.Y)) ||
-                  ((pt.X == linePt2.X) && (pt.Y == linePt2.Y)) ||
-                  (((pt.X > linePt1.X) == (pt.X < linePt2.X)) &&
-                  ((pt.Y > linePt1.Y) == (pt.Y < linePt2.Y)) &&
-                  ((pt.X - linePt1.X) * (linePt2.Y - linePt1.Y) ==
-                    (linePt2.X - linePt1.X) * (pt.Y - linePt1.Y)));
-        }
+
         //------------------------------------------------------------------------------
 
-        internal bool PointOnPolygon(IntPoint pt, OutPt pp, bool UseFullRange)
-        {
-            OutPt pp2 = pp;
-            while (true)
-            {
-                if (PointOnLineSegment(pt, pp2.Pt, pp2.Next.Pt, UseFullRange))
-                    return true;
-                pp2 = pp2.Next;
-                if (pp2 == pp) break;
-            }
-            return false;
-        }
         //------------------------------------------------------------------------------
 
-        internal static bool SlopesEqual(TEdge e1, TEdge e2, bool UseFullRange)
+        internal static bool SlopesEqual(TEdge e1, TEdge e2)
         {
-            if (UseFullRange)
-                return Int128.Int128Mul(e1.Delta.Y, e2.Delta.X) ==
-                    Int128.Int128Mul(e1.Delta.X, e2.Delta.Y);
-            else return (cInt)(e1.Delta.Y) * (e2.Delta.X) ==
-              (cInt)(e1.Delta.X) * (e2.Delta.Y);
+            return (cInt)(e1.Delta.Y) * (e2.Delta.X) ==
+                          (cInt)(e1.Delta.X) * (e2.Delta.Y);
         }
         //------------------------------------------------------------------------------
 
         internal static bool SlopesEqual(IntPoint pt1, IntPoint pt2,
-            IntPoint pt3, bool UseFullRange)
+            IntPoint pt3)
         {
-            if (UseFullRange)
-                return Int128.Int128Mul(pt1.Y - pt2.Y, pt2.X - pt3.X) ==
-                  Int128.Int128Mul(pt1.X - pt2.X, pt2.Y - pt3.Y);
-            else return
-              (cInt)(pt1.Y - pt2.Y) * (pt2.X - pt3.X) - (cInt)(pt1.X - pt2.X) * (pt2.Y - pt3.Y) == 0;
+            return
+                          (cInt)(pt1.Y - pt2.Y) * (pt2.X - pt3.X) - (cInt)(pt1.X - pt2.X) * (pt2.Y - pt3.Y) == 0;
         }
         //------------------------------------------------------------------------------
 
         internal static bool SlopesEqual(IntPoint pt1, IntPoint pt2,
-            IntPoint pt3, IntPoint pt4, bool UseFullRange)
+            IntPoint pt3, IntPoint pt4)
         {
-            if (UseFullRange)
-                return Int128.Int128Mul(pt1.Y - pt2.Y, pt3.X - pt4.X) ==
-                  Int128.Int128Mul(pt1.X - pt2.X, pt3.Y - pt4.Y);
-            else return
-              (cInt)(pt1.Y - pt2.Y) * (pt3.X - pt4.X) - (cInt)(pt1.X - pt2.X) * (pt3.Y - pt4.Y) == 0;
+            return
+                          (cInt)(pt1.Y - pt2.Y) * (pt3.X - pt4.X) - (cInt)(pt1.X - pt2.X) * (pt3.Y - pt4.Y) == 0;
         }
         //------------------------------------------------------------------------------
 
@@ -651,7 +563,6 @@ namespace ClipperLib
         {
             m_MinimaList = null;
             m_CurrentLM = null;
-            m_UseFullRange = false;
             m_HasOpenPaths = false;
         }
         //------------------------------------------------------------------------------
@@ -665,7 +576,6 @@ namespace ClipperLib
                 m_edges[i].Clear();
             }
             m_edges.Clear();
-            m_UseFullRange = false;
             m_HasOpenPaths = false;
         }
         //------------------------------------------------------------------------------
@@ -682,18 +592,10 @@ namespace ClipperLib
         }
         //------------------------------------------------------------------------------
 
-        void RangeTest(IntPoint Pt, ref bool useFullRange)
+        void RangeTest(IntPoint Pt)
         {
-            if (useFullRange)
-            {
-                if (Pt.X > hiRange || Pt.Y > hiRange || -Pt.X > hiRange || -Pt.Y > hiRange)
-                    throw new ClipperException("Coordinate outside allowed range");
-            }
-            else if (Pt.X > loRange || Pt.Y > loRange || -Pt.X > loRange || -Pt.Y > loRange)
-            {
-                useFullRange = true;
-                RangeTest(Pt, ref useFullRange);
-            }
+            if (Pt.X > hiRange || Pt.Y > hiRange || -Pt.X > hiRange || -Pt.Y > hiRange)
+                throw new ClipperException("Coordinate outside allowed range");
         }
         //------------------------------------------------------------------------------
 
@@ -873,13 +775,13 @@ namespace ClipperLib
 
             //1. Basic (first) edge initialization ...
             edges[1].Curr = pg[1];
-            RangeTest(pg[0], ref m_UseFullRange);
-            RangeTest(pg[highI], ref m_UseFullRange);
+            RangeTest(pg[0]);
+            RangeTest(pg[highI]);
             InitEdge(edges[0], edges[1], edges[highI], pg[0]);
             InitEdge(edges[highI], edges[0], edges[highI - 1], pg[highI]);
             for (int i = highI - 1; i >= 1; --i)
             {
-                RangeTest(pg[i], ref m_UseFullRange);
+                RangeTest(pg[i]);
                 InitEdge(edges[i], edges[i + 1], edges[i - 1], pg[i]);
             }
             TEdge eStart = edges[0];
@@ -900,7 +802,7 @@ namespace ClipperLib
                 if (E.Prev == E.Next)
                     break; //only two vertices
                 else if (Closed &&
-                  SlopesEqual(E.Prev.Curr, E.Curr, E.Next.Curr, m_UseFullRange) &&
+                  SlopesEqual(E.Prev.Curr, E.Curr, E.Next.Curr) &&
                   (!PreserveCollinear ||
                   !Pt2IsBetweenPt1AndPt3(E.Prev.Curr, E.Curr, E.Next.Curr)))
                 {
@@ -1637,7 +1539,7 @@ namespace ClipperLib
                 if (lb.OutIdx >= 0 && lb.PrevInAEL != null &&
                   lb.PrevInAEL.Curr.X == lb.Bot.X &&
                   lb.PrevInAEL.OutIdx >= 0 &&
-                  SlopesEqual(lb.PrevInAEL.Curr, lb.PrevInAEL.Top, lb.Curr, lb.Top, m_UseFullRange) &&
+                  SlopesEqual(lb.PrevInAEL.Curr, lb.PrevInAEL.Top, lb.Curr, lb.Top) &&
                   lb.WindDelta != 0 && lb.PrevInAEL.WindDelta != 0)
                 {
                     OutPt Op2 = AddOutPt(lb.PrevInAEL, lb.Bot);
@@ -1648,7 +1550,7 @@ namespace ClipperLib
                 {
 
                     if (rb.OutIdx >= 0 && rb.PrevInAEL.OutIdx >= 0 &&
-                      SlopesEqual(rb.PrevInAEL.Curr, rb.PrevInAEL.Top, rb.Curr, rb.Top, m_UseFullRange) &&
+                      SlopesEqual(rb.PrevInAEL.Curr, rb.PrevInAEL.Top, rb.Curr, rb.Top) &&
                       rb.WindDelta != 0 && rb.PrevInAEL.WindDelta != 0)
                     {
                         OutPt Op2 = AddOutPt(rb.PrevInAEL, rb.Bot);
@@ -2083,7 +1985,7 @@ namespace ClipperLib
                 cInt xPrev = TopX(prevE, pt.Y);
                 cInt xE = TopX(e, pt.Y);
                 if ((xPrev == xE) && (e.WindDelta != 0) && (prevE.WindDelta != 0) &&
-                  SlopesEqual(new IntPoint(xPrev, pt.Y), prevE.Top, new IntPoint(xE, pt.Y), e.Top, m_UseFullRange))
+                  SlopesEqual(new IntPoint(xPrev, pt.Y), prevE.Top, new IntPoint(xE, pt.Y), e.Top))
                 {
                     OutPt outPt = AddOutPt(prevE, pt);
                     AddJoin(result, outPt, e.Top);
@@ -2187,7 +2089,7 @@ namespace ClipperLib
         }
         //------------------------------------------------------------------------------
 
-        private int GetDx(IntPoint pt1, IntPoint pt2)
+        private DeterministicInt GetDx(IntPoint pt1, IntPoint pt2)
         {
             if (pt1.Y == pt2.Y) return horizontal;
             else return (pt2.X - pt1.X) / (pt2.Y - pt1.Y);
@@ -2198,20 +2100,20 @@ namespace ClipperLib
         {
             OutPt p = btmPt1.Prev;
             while ((p.Pt == btmPt1.Pt) && (p != btmPt1)) p = p.Prev;
-            int dx1p = Math.Abs(GetDx(btmPt1.Pt, p.Pt));
+            DeterministicInt dx1p = DeterministicInt.Abs(GetDx(btmPt1.Pt, p.Pt));
             p = btmPt1.Next;
             while ((p.Pt == btmPt1.Pt) && (p != btmPt1)) p = p.Next;
-            int dx1n = Math.Abs(GetDx(btmPt1.Pt, p.Pt));
+            DeterministicInt dx1n = DeterministicInt.Abs(GetDx(btmPt1.Pt, p.Pt));
 
             p = btmPt2.Prev;
             while ((p.Pt == btmPt2.Pt) && (p != btmPt2)) p = p.Prev;
-            int dx2p = Math.Abs(GetDx(btmPt2.Pt, p.Pt));
+            DeterministicInt dx2p = DeterministicInt.Abs(GetDx(btmPt2.Pt, p.Pt));
             p = btmPt2.Next;
             while ((p.Pt == btmPt2.Pt) && (p != btmPt2)) p = p.Next;
-            int dx2n = Math.Abs(GetDx(btmPt2.Pt, p.Pt));
+            DeterministicInt dx2n = DeterministicInt.Abs(GetDx(btmPt2.Pt, p.Pt));
 
-            if (Math.Max(dx1p, dx1n) == Math.Max(dx2p, dx2n) &&
-              Math.Min(dx1p, dx1n) == Math.Min(dx2p, dx2n))
+            if (DeterministicInt.Max(dx1p, dx1n) == DeterministicInt.Max(dx2p, dx2n) &&
+                DeterministicInt.Min(dx1p, dx1n) == DeterministicInt.Min(dx2p, dx2n))
                 return Area(btmPt1) > 0; //if otherwise identical use orientation
             else
                 return (dx1p >= dx2p && dx1p >= dx2n) || (dx1n >= dx2p && dx1n >= dx2n);
@@ -2822,7 +2724,7 @@ namespace ClipperLib
                     if (ePrev != null && ePrev.Curr.X == horzEdge.Bot.X &&
                       ePrev.Curr.Y == horzEdge.Bot.Y && ePrev.WindDelta != 0 &&
                       (ePrev.OutIdx >= 0 && ePrev.Curr.Y > ePrev.Top.Y &&
-                      SlopesEqual(horzEdge, ePrev, m_UseFullRange)))
+                      SlopesEqual(horzEdge, ePrev)))
                     {
                         OutPt op2 = AddOutPt(ePrev, horzEdge.Bot);
                         AddJoin(op1, op2, horzEdge.Top);
@@ -2830,7 +2732,7 @@ namespace ClipperLib
                     else if (eNext != null && eNext.Curr.X == horzEdge.Bot.X &&
                       eNext.Curr.Y == horzEdge.Bot.Y && eNext.WindDelta != 0 &&
                       eNext.OutIdx >= 0 && eNext.Curr.Y > eNext.Top.Y &&
-                      SlopesEqual(horzEdge, eNext, m_UseFullRange))
+                      SlopesEqual(horzEdge, eNext))
                     {
                         OutPt op2 = AddOutPt(eNext, horzEdge.Bot);
                         AddJoin(op1, op2, horzEdge.Top);
@@ -2859,13 +2761,13 @@ namespace ClipperLib
         }
         //------------------------------------------------------------------------------
 
-        private bool IsMaxima(TEdge e, int Y)
+        private bool IsMaxima(TEdge e, DeterministicInt Y)
         {
             return (e != null && e.Top.Y == Y && e.NextInLML == null);
         }
         //------------------------------------------------------------------------------
 
-        private bool IsIntermediate(TEdge e, int Y)
+        private bool IsIntermediate(TEdge e, DeterministicInt Y)
         {
             return (e.Top.Y == Y && e.NextInLML != null);
         }
@@ -3021,10 +2923,9 @@ namespace ClipperLib
         }
         //------------------------------------------------------------------------------
 
-        internal static cInt Round(int value)
+        internal static cInt Round(DeterministicInt value)
         {
-            return value;
-            //return value < 0 ? (cInt)(value - 0.5) : (cInt)(value + 0.5);
+            return value < 0 ? (cInt)(value - new DeterministicInt(0.5)) : (cInt)(value + new DeterministicInt(0.5));
         }
         //------------------------------------------------------------------------------
 
@@ -3039,7 +2940,7 @@ namespace ClipperLib
         private void IntersectPoint(TEdge edge1, TEdge edge2, out IntPoint ip)
         {
             ip = new IntPoint();
-            int b1, b2;
+            DeterministicInt b1, b2;
             //nb: with very large coordinate values, it's possible for SlopesEqual() to 
             //return false but for the edge.Dx value be equal due to double precision rounding.
             if (edge1.Dx == edge2.Dx)
@@ -3079,9 +2980,9 @@ namespace ClipperLib
             {
                 b1 = edge1.Bot.X - edge1.Bot.Y * edge1.Dx;
                 b2 = edge2.Bot.X - edge2.Bot.Y * edge2.Dx;
-                int q = (b2 - b1) / (edge1.Dx - edge2.Dx);
+                DeterministicInt q = (b2 - b1) / (edge1.Dx - edge2.Dx);
                 ip.Y = Round(q);
-                if (Math.Abs(edge1.Dx) < Math.Abs(edge2.Dx))
+                if (DeterministicInt.Abs(edge1.Dx) < DeterministicInt.Abs(edge2.Dx))
                     ip.X = Round(edge1.Dx * q + b1);
                 else
                     ip.X = Round(edge2.Dx * q + b2);
@@ -3093,7 +2994,7 @@ namespace ClipperLib
                     ip.Y = edge1.Top.Y;
                 else
                     ip.Y = edge2.Top.Y;
-                if (Math.Abs(edge1.Dx) < Math.Abs(edge2.Dx))
+                if (DeterministicInt.Abs(edge1.Dx) < DeterministicInt.Abs(edge2.Dx))
                     ip.X = TopX(edge1, ip.Y);
                 else
                     ip.X = TopX(edge2, ip.Y);
@@ -3103,7 +3004,7 @@ namespace ClipperLib
             {
                 ip.Y = edge1.Curr.Y;
                 //better to use the more vertical edge to derive X ...
-                if (Math.Abs(edge1.Dx) > Math.Abs(edge2.Dx))
+                if (DeterministicInt.Abs(edge1.Dx) > DeterministicInt.Abs(edge2.Dx))
                     ip.X = TopX(edge2, ip.Y);
                 else
                     ip.X = TopX(edge1, ip.Y);
@@ -3190,7 +3091,7 @@ namespace ClipperLib
                     if (ePrev != null && ePrev.Curr.X == e.Bot.X &&
                       ePrev.Curr.Y == e.Bot.Y && op != null &&
                       ePrev.OutIdx >= 0 && ePrev.Curr.Y > ePrev.Top.Y &&
-                      SlopesEqual(e.Curr, e.Top, ePrev.Curr, ePrev.Top, m_UseFullRange) &&
+                      SlopesEqual(e.Curr, e.Top, ePrev.Curr, ePrev.Top) &&
                       (e.WindDelta != 0) && (ePrev.WindDelta != 0))
                     {
                         OutPt op2 = AddOutPt(ePrev, e.Bot);
@@ -3199,7 +3100,7 @@ namespace ClipperLib
                     else if (eNext != null && eNext.Curr.X == e.Bot.X &&
                       eNext.Curr.Y == e.Bot.Y && op != null &&
                       eNext.OutIdx >= 0 && eNext.Curr.Y > eNext.Top.Y &&
-                      SlopesEqual(e.Curr, e.Top, eNext.Curr, eNext.Top, m_UseFullRange) &&
+                      SlopesEqual(e.Curr, e.Top, eNext.Curr, eNext.Top) &&
                       (e.WindDelta != 0) && (eNext.WindDelta != 0))
                     {
                         OutPt op2 = AddOutPt(eNext, e.Bot);
@@ -3393,7 +3294,7 @@ namespace ClipperLib
                 }
                 //test for duplicate points and collinear edges ...
                 if ((pp.Pt == pp.Next.Pt) || (pp.Pt == pp.Prev.Pt) ||
-                  (SlopesEqual(pp.Prev.Pt, pp.Pt, pp.Next.Pt, m_UseFullRange) &&
+                  (SlopesEqual(pp.Prev.Pt, pp.Pt, pp.Next.Pt) &&
                   (!preserveCol || !Pt2IsBetweenPt1AndPt3(pp.Prev.Pt, pp.Pt, pp.Next.Pt))))
                 {
                     lastOK = null;
@@ -3439,13 +3340,13 @@ namespace ClipperLib
         {
             if (a1 < a2)
             {
-                if (b1 < b2) { Left = Math.Max(a1, b1); Right = Math.Min(a2, b2); }
-                else { Left = Math.Max(a1, b2); Right = Math.Min(a2, b1); }
+                if (b1 < b2) { Left = DeterministicInt.Max(a1, b1); Right = DeterministicInt.Min(a2, b2); }
+                else { Left = DeterministicInt.Max(a1, b2); Right = DeterministicInt.Min(a2, b1); }
             }
             else
             {
-                if (b1 < b2) { Left = Math.Max(a2, b1); Right = Math.Min(a1, b2); }
-                else { Left = Math.Max(a2, b2); Right = Math.Min(a1, b1); }
+                if (b1 < b2) { Left = DeterministicInt.Max(a2, b1); Right = DeterministicInt.Min(a1, b2); }
+                else { Left = DeterministicInt.Max(a2, b2); Right = DeterministicInt.Min(a1, b1); }
             }
             return Left < Right;
         }
@@ -3652,24 +3553,24 @@ namespace ClipperLib
                 op1b = op1.Next;
                 while ((op1b.Pt == op1.Pt) && (op1b != op1)) op1b = op1b.Next;
                 bool Reverse1 = ((op1b.Pt.Y > op1.Pt.Y) ||
-                  !SlopesEqual(op1.Pt, op1b.Pt, j.OffPt, m_UseFullRange));
+                  !SlopesEqual(op1.Pt, op1b.Pt, j.OffPt));
                 if (Reverse1)
                 {
                     op1b = op1.Prev;
                     while ((op1b.Pt == op1.Pt) && (op1b != op1)) op1b = op1b.Prev;
                     if ((op1b.Pt.Y > op1.Pt.Y) ||
-                      !SlopesEqual(op1.Pt, op1b.Pt, j.OffPt, m_UseFullRange)) return false;
+                      !SlopesEqual(op1.Pt, op1b.Pt, j.OffPt)) return false;
                 };
                 op2b = op2.Next;
                 while ((op2b.Pt == op2.Pt) && (op2b != op2)) op2b = op2b.Next;
                 bool Reverse2 = ((op2b.Pt.Y > op2.Pt.Y) ||
-                  !SlopesEqual(op2.Pt, op2b.Pt, j.OffPt, m_UseFullRange));
+                  !SlopesEqual(op2.Pt, op2b.Pt, j.OffPt));
                 if (Reverse2)
                 {
                     op2b = op2.Prev;
                     while ((op2b.Pt == op2.Pt) && (op2b != op2)) op2b = op2b.Prev;
                     if ((op2b.Pt.Y > op2.Pt.Y) ||
-                      !SlopesEqual(op2.Pt, op2b.Pt, j.OffPt, m_UseFullRange)) return false;
+                      !SlopesEqual(op2.Pt, op2b.Pt, j.OffPt)) return false;
                 }
 
                 if ((op1b == op1) || (op2b == op2) || (op1b == op2b) ||
@@ -3726,7 +3627,7 @@ namespace ClipperLib
                         if (ipNext.X > pt.X) result = 1 - result;
                         else
                         {
-                            int d = (ip.X - pt.X) * (ipNext.Y - pt.Y) - (ipNext.X - pt.X) * (ip.Y - pt.Y);
+                            var d = (ip.X - pt.X) * (ipNext.Y - pt.Y) - (ipNext.X - pt.X) * (ip.Y - pt.Y);
                             if (d == 0) return -1;
                             else if ((d > 0) == (ipNext.Y > ip.Y)) result = 1 - result;
                         }
@@ -3735,7 +3636,7 @@ namespace ClipperLib
                     {
                         if (ipNext.X > pt.X)
                         {
-                            int d = (ip.X - pt.X) * (ipNext.Y - pt.Y) - (ipNext.X - pt.X) * (ip.Y - pt.Y);
+                            var d = (ip.X - pt.X) * (ipNext.Y - pt.Y) - (ipNext.X - pt.X) * (ip.Y - pt.Y);
                             if (d == 0) return -1;
                             else if ((d > 0) == (ipNext.Y > ip.Y)) result = 1 - result;
                         }
@@ -3773,7 +3674,7 @@ namespace ClipperLib
                         if (poly1x > ptx) result = 1 - result;
                         else
                         {
-                            int d = (poly0x - ptx) * (poly1y - pty) -
+                            var d = (poly0x - ptx) * (poly1y - pty) -
                               (poly1x - ptx) * (poly0y - pty);
                             if (d == 0) return -1;
                             if ((d > 0) == (poly1y > poly0y)) result = 1 - result;
@@ -3783,7 +3684,7 @@ namespace ClipperLib
                     {
                         if (poly1x > ptx)
                         {
-                            int d = (poly0x - ptx) * (poly1y - pty) -
+                            var d = (poly0x - ptx) * (poly1y - pty) -
                               (poly1x - ptx) * (poly0y - pty);
                             if (d == 0) return -1;
                             if ((d > 0) == (poly1y > poly0y)) result = 1 - result;
@@ -4033,11 +3934,11 @@ namespace ClipperLib
         }
         //------------------------------------------------------------------------------
 
-        public static int Area(Path poly)
+        public static DeterministicInt Area(Path poly)
         {
             int cnt = (int)poly.Count;
             if (cnt < 3) return 0;
-            int a = 0;
+            DeterministicInt a = 0;
             for (int i = 0, j = cnt - 1; i < cnt; ++i)
             {
                 a += (poly[j].X + poly[i].X) * (poly[j].Y - poly[i].Y);
@@ -4047,17 +3948,17 @@ namespace ClipperLib
         }
         //------------------------------------------------------------------------------
 
-        internal int Area(OutRec outRec)
+        internal DeterministicInt Area(OutRec outRec)
         {
             return Area(outRec.Pts);
         }
         //------------------------------------------------------------------------------
 
-        internal int Area(OutPt op)
+        internal DeterministicInt Area(OutPt op)
         {
             OutPt opFirst = op;
             if (op == null) return 0;
-            int a = 0;
+            DeterministicInt a = 0;
             do
             {
                 a = a + (op.Prev.Pt.X + op.Pt.X) * (op.Prev.Pt.Y - op.Pt.Y);
@@ -4071,31 +3972,9 @@ namespace ClipperLib
         // Convert self-intersecting polygons into simple polygons
         //------------------------------------------------------------------------------
 
-        public static Paths SimplifyPolygon(Path poly,
-              PolyFillType fillType = PolyFillType.pftEvenOdd)
-        {
-            Paths result = new Paths();
-            Clipper c = new Clipper();
-            c.StrictlySimple = true;
-            c.AddPath(poly, PolyType.ptSubject, true);
-            c.Execute(ClipType.ctUnion, result, fillType, fillType);
-            return result;
-        }
         //------------------------------------------------------------------------------
 
-        public static Paths SimplifyPolygons(Paths polys,
-            PolyFillType fillType = PolyFillType.pftEvenOdd)
-        {
-            Paths result = new Paths();
-            Clipper c = new Clipper();
-            c.StrictlySimple = true;
-            c.AddPaths(polys, PolyType.ptSubject, true);
-            c.Execute(ClipType.ctUnion, result, fillType, fillType);
-            return result;
-        }
-        //------------------------------------------------------------------------------
-
-        private static int DistanceFromLineSqrd(IntPoint pt, IntPoint ln1, IntPoint ln2)
+        private static DeterministicInt DistanceFromLineSqrd(IntPoint pt, IntPoint ln1, IntPoint ln2)
         {
             //The equation of a line in general form (Ax + By + C = 0)
             //given 2 points (x¹,y¹) & (x²,y²) is ...
@@ -4103,9 +3982,9 @@ namespace ClipperLib
             //A = (y¹ - y²); B = (x² - x¹); C = (y² - y¹)x¹ - (x² - x¹)y¹
             //perpendicular distance of point (x³,y³) = (Ax³ + By³ + C)/Sqrt(A² + B²)
             //see http://en.wikipedia.org/wiki/Perpendicular_distance
-            int A = ln1.Y - ln2.Y;
-            int B = ln2.X - ln1.X;
-            int C = A * ln1.X + B * ln1.Y;
+            DeterministicInt A = ln1.Y - ln2.Y;
+            DeterministicInt B = ln2.X - ln1.X;
+            DeterministicInt C = A * ln1.X + B * ln1.Y;
             C = A * pt.X + B * pt.Y - C;
             return (C * C) / (A * A + B * B);
         }
@@ -4117,7 +3996,7 @@ namespace ClipperLib
             //this function is more accurate when the point that's GEOMETRICALLY 
             //between the other 2 points is the one that's tested for distance.  
             //nb: with 'spikes', either pt1 or pt3 is geometrically between the other pts                    
-            if (Math.Abs(pt1.X - pt2.X) > Math.Abs(pt1.Y - pt2.Y))
+            if (DeterministicInt.Abs(pt1.X - pt2.X) > DeterministicInt.Abs(pt1.Y - pt2.Y))
             {
                 if ((pt1.X > pt2.X) == (pt1.X < pt3.X))
                     return DistanceFromLineSqrd(pt1, pt2, pt3) < distSqrd;
@@ -4140,8 +4019,8 @@ namespace ClipperLib
 
         private static bool PointsAreClose(IntPoint pt1, IntPoint pt2, int distSqrd)
         {
-            int dx = pt1.X - pt2.X;
-            int dy = pt1.Y - pt2.Y;
+            DeterministicInt dx = pt1.X - pt2.X;
+            DeterministicInt dy = pt1.Y - pt2.Y;
             return ((dx * dx) + (dy * dy) <= distSqrd);
         }
         //------------------------------------------------------------------------------

@@ -35,7 +35,7 @@
 using System;
 using System.Diagnostics;
 
-using Real = System.Int32;
+using Real = Navigation.DeterministicMath.DeterministicInt;
 namespace LibTessDotNet
 {
     public partial class Tess
@@ -97,15 +97,15 @@ namespace LibTessDotNet
                     // Sort them by slope.
                     if (Geom.VertLeq(e1._Org, e2._Org))
                     {
-                        return Geom.EdgeSign(e2._Dst, e1._Org, e2._Org) <= 0.0f;
+                        return Geom.EdgeSign(e2._Dst, e1._Org, e2._Org) <= new Real(0);
                     }
-                    return Geom.EdgeSign(e1._Dst, e2._Org, e1._Org) >= 0.0f;
+                    return Geom.EdgeSign(e1._Dst, e2._Org, e1._Org) >= new Real(0);
                 }
-                return Geom.EdgeSign(e2._Dst, _event, e2._Org) <= 0.0f;
+                return Geom.EdgeSign(e2._Dst, _event, e2._Org) <= new Real(0);
             }
             if (e2._Dst == _event)
             {
-                return Geom.EdgeSign(e1._Dst, _event, e1._Org) >= 0.0f;
+                return Geom.EdgeSign(e1._Dst, _event, e1._Org) >= new Real(0);
             }
 
             // General case - compute signed distance *from* e1, e2 to event
@@ -425,7 +425,7 @@ namespace LibTessDotNet
 
             if (Geom.VertLeq(eUp._Org, eLo._Org))
             {
-                if (Geom.EdgeSign(eLo._Dst, eUp._Org, eLo._Org) > 0.0f)
+                if (Geom.EdgeSign(eLo._Dst, eUp._Org, eLo._Org) > new Real(0))
                 {
                     return false;
                 }
@@ -447,7 +447,7 @@ namespace LibTessDotNet
             }
             else
             {
-                if (Geom.EdgeSign(eUp._Dst, eLo._Org, eUp._Org) < 0.0f)
+                if (Geom.EdgeSign(eUp._Dst, eLo._Org, eUp._Org) < new Real(0))
                 {
                     return false;
                 }
@@ -488,7 +488,7 @@ namespace LibTessDotNet
 
             if (Geom.VertLeq(eUp._Dst, eLo._Dst))
             {
-                if (Geom.EdgeSign(eUp._Dst, eLo._Dst, eUp._Org) < 0.0f)
+                if (Geom.EdgeSign(eUp._Dst, eLo._Dst, eUp._Org) < new Real(0))
                 {
                     return false;
                 }
@@ -501,7 +501,7 @@ namespace LibTessDotNet
             }
             else
             {
-                if (Geom.EdgeSign(eLo._Dst, eUp._Dst, eLo._Org) > 0.0f)
+                if (Geom.EdgeSign(eLo._Dst, eUp._Dst, eLo._Org) > new Real(0))
                 {
                     return false;
                 }
@@ -535,8 +535,8 @@ namespace LibTessDotNet
             var dstLo = eLo._Dst;
 
             Debug.Assert(!Geom.VertEq(dstLo, dstUp));
-            Debug.Assert(Geom.EdgeSign(dstUp, _event, orgUp) <= 0.0f);
-            Debug.Assert(Geom.EdgeSign(dstLo, _event, orgLo) >= 0.0f);
+            Debug.Assert(Geom.EdgeSign(dstUp, _event, orgUp) <= new Real(0));
+            Debug.Assert(Geom.EdgeSign(dstLo, _event, orgLo) >= new Real(0));
             Debug.Assert(orgUp != _event && orgLo != _event);
             Debug.Assert(!regUp._fixUpperEdge && !regLo._fixUpperEdge);
 
@@ -546,8 +546,8 @@ namespace LibTessDotNet
                 return false;
             }
 
-            var tMinUp = Math.Min(orgUp._t, dstUp._t);
-            var tMaxLo = Math.Max(orgLo._t, dstLo._t);
+            var tMinUp = Real.Min(orgUp._t, dstUp._t);
+            var tMaxLo = Real.Max(orgLo._t, dstLo._t);
             if( tMinUp > tMaxLo )
             {
                 // t ranges do not overlap
@@ -556,14 +556,14 @@ namespace LibTessDotNet
 
             if (Geom.VertLeq(orgUp, orgLo))
             {
-                if (Geom.EdgeSign( dstLo, orgUp, orgLo ) > 0.0f)
+                if (Geom.EdgeSign( dstLo, orgUp, orgLo ) > new Real(0))
                 {
                     return false;
                 }
             }
             else
             {
-                if (Geom.EdgeSign( dstUp, orgLo, orgUp ) < 0.0f)
+                if (Geom.EdgeSign( dstUp, orgLo, orgUp ) < new Real(0))
                 {
                     return false;
                 }
@@ -574,10 +574,10 @@ namespace LibTessDotNet
             var isect = _pool.Get<MeshUtils.Vertex>();
             Geom.EdgeIntersect(dstUp, orgUp, dstLo, orgLo, isect);
             // The following properties are guaranteed:
-            Debug.Assert(Math.Min(orgUp._t, dstUp._t) <= isect._t);
-            Debug.Assert(isect._t <= Math.Max(orgLo._t, dstLo._t));
-            Debug.Assert(Math.Min(dstLo._s, dstUp._s) <= isect._s);
-            Debug.Assert(isect._s <= Math.Max(orgLo._s, orgUp._s));
+            Debug.Assert(Real.Min(orgUp._t, dstUp._t) <= isect._t);
+            Debug.Assert(isect._t <= Real.Max(orgLo._t, dstLo._t));
+            Debug.Assert(Real.Min(dstLo._s, dstUp._s) <= isect._s);
+            Debug.Assert(isect._s <= Real.Max(orgLo._s, orgUp._s));
 
             if (Geom.VertLeq(isect, _event))
             {
@@ -610,9 +610,9 @@ namespace LibTessDotNet
             }
 
             if (   (! Geom.VertEq(dstUp, _event)
-                && Geom.EdgeSign(dstUp, _event, isect) >= 0.0f)
+                && Geom.EdgeSign(dstUp, _event, isect) >= new Real(0))
                 || (! Geom.VertEq(dstLo, _event)
-                && Geom.EdgeSign(dstLo, _event, isect) <= 0.0f))
+                && Geom.EdgeSign(dstLo, _event, isect) <= new Real(0)))
             {
                 // Very unusual -- the new upper or lower edge would pass on the
                 // wrong side of the sweep event, or through it. This can happen
@@ -645,14 +645,14 @@ namespace LibTessDotNet
                 // Special case: called from ConnectRightVertex. If either
                 // edge passes on the wrong side of tess._event, split it
                 // (and wait for ConnectRightVertex to splice it appropriately).
-                if (Geom.EdgeSign( dstUp, _event, isect ) >= 0.0f)
+                if (Geom.EdgeSign( dstUp, _event, isect ) >= new Real(0))
                 {
                     RegionAbove(regUp)._dirty = regUp._dirty = true;
                     _mesh.SplitEdge(_pool, eUp._Sym);
                     eUp._Org._s = _event._s;
                     eUp._Org._t = _event._t;
                 }
-                if (Geom.EdgeSign(dstLo, _event, isect) <= 0.0f)
+                if (Geom.EdgeSign(dstLo, _event, isect) <= new Real(0))
                 {
                     regUp._dirty = regLo._dirty = true;
                     _mesh.SplitEdge(_pool, eLo._Sym);
@@ -941,7 +941,7 @@ namespace LibTessDotNet
             var eLo = regLo._eUp;
 
             // Try merging with U or L first
-            if (Geom.EdgeSign(eUp._Dst, vEvent, eUp._Org) == 0.0f)
+            if (Geom.EdgeSign(eUp._Dst, vEvent, eUp._Org) == new Real(0))
             {
                 ConnectLeftDegenerate(regUp, vEvent);
                 return;
@@ -1064,7 +1064,7 @@ namespace LibTessDotNet
             _dict = new Dict<ActiveRegion>(EdgeLeq);
 
             AddSentinel(-SentinelCoord, SentinelCoord, -SentinelCoord);
-            AddSentinel(-SentinelCoord, SentinelCoord, +SentinelCoord);
+            AddSentinel(-SentinelCoord, SentinelCoord, SentinelCoord);
         }
 
         private void DoneEdgeDict()

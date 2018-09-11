@@ -34,8 +34,7 @@
 
 using System;
 using System.Diagnostics;
-
-using Real = System.Int32;
+using Real = Navigation.DeterministicMath.DeterministicInt;
 namespace LibTessDotNet
 {
     internal static class Geom
@@ -60,7 +59,7 @@ namespace LibTessDotNet
 
         public static bool VertCCW(MeshUtils.Vertex u, MeshUtils.Vertex v, MeshUtils.Vertex w)
         {
-            return (u._s * (v._t - w._t) + v._s * (w._t - u._t) + w._s * (u._t - v._t)) >= 0.0f;
+            return (u._s * (v._t - w._t) + v._s * (w._t - u._t) + w._s * (u._t - v._t)) >= new Real(0);
         }
         public static bool VertEq(MeshUtils.Vertex lhs, MeshUtils.Vertex rhs)
         {
@@ -89,7 +88,7 @@ namespace LibTessDotNet
             var gapL = v._s - u._s;
             var gapR = w._s - v._s;
 
-            if (gapL + gapR > 0.0f)
+            if (gapL + gapR > new Real(0))
             {
                 if (gapL < gapR)
                 {
@@ -101,7 +100,7 @@ namespace LibTessDotNet
                 }
             }
             /* vertical line */
-            return 0;
+            return new Real(0);
         }
 
         /// <summary>
@@ -116,12 +115,12 @@ namespace LibTessDotNet
             var gapL = v._s - u._s;
             var gapR = w._s - v._s;
 
-            if (gapL + gapR > 0.0f)
+            if (gapL + gapR > new Real(0))
             {
                 return (v._t - w._t) * gapL + (v._t - u._t) * gapR;
             }
             /* vertical line */
-            return 0;
+            return new Real(0);
         }
 
         public static bool TransLeq(MeshUtils.Vertex lhs, MeshUtils.Vertex rhs)
@@ -136,7 +135,7 @@ namespace LibTessDotNet
             var gapL = v._t - u._t;
             var gapR = w._t - v._t;
 
-            if (gapL + gapR > 0.0f)
+            if (gapL + gapR > new Real(0))
             {
                 if (gapL < gapR)
                 {
@@ -148,7 +147,7 @@ namespace LibTessDotNet
                 }
             }
             /* vertical line */
-            return 0;
+            return new Real(0);
         }
 
         public static Real TransSign(MeshUtils.Vertex u, MeshUtils.Vertex v, MeshUtils.Vertex w)
@@ -158,12 +157,12 @@ namespace LibTessDotNet
             var gapL = v._t - u._t;
             var gapR = w._t - v._t;
 
-            if (gapL + gapR > 0.0f)
+            if (gapL + gapR > new Real(0))
             {
                 return (v._s - w._s) * gapL + (v._s - u._s) * gapR;
             }
             /* vertical line */
-            return 0;
+            return new Real(0);
         }
 
         public static bool EdgeGoesLeft(MeshUtils.Edge e)
@@ -178,7 +177,7 @@ namespace LibTessDotNet
 
         public static Real VertL1dist(MeshUtils.Vertex u, MeshUtils.Vertex v)
         {
-            return Math.Abs(u._s - v._s) + Math.Abs(u._t - v._t);
+            return Real.Abs(u._s - v._s) + Real.Abs(u._t - v._t);
         }
 
         public static void AddWinding(MeshUtils.Edge eDst, MeshUtils.Edge eSrc)
@@ -191,11 +190,11 @@ namespace LibTessDotNet
         {
             if (a < 0)
             {
-                a = 0;
+                a = new Real(0);
             }
             if (b < 0)
             {
-                b = 0;
+                b = new Real(0);
             }
             return ((a <= b) ? ((b == 0) ? ((x+y) / 2)
                     : (x + (y-x) * (a/(a+b))))
@@ -237,7 +236,7 @@ namespace LibTessDotNet
                 // Interpolate between o2 and d1
                 var z1 = EdgeEval(o1, o2, d1);
                 var z2 = EdgeEval(o2, d1, d2);
-                if (z1 + z2 < 0.0f)
+                if (z1 + z2 < new Real(0))
                 {
                     z1 = -z1;
                     z2 = -z2;
@@ -249,7 +248,7 @@ namespace LibTessDotNet
                 // Interpolate between o2 and d2
                 var z1 = EdgeSign(o1, o2, d1);
                 var z2 = -EdgeSign(o1, d2, d1);
-                if (z1 + z2 < 0.0f)
+                if (z1 + z2 < new Real(0))
                 {
                     z1 = -z1;
                     z2 = -z2;
@@ -273,7 +272,7 @@ namespace LibTessDotNet
                 // Interpolate between o2 and d1
                 var z1 = TransEval(o1, o2, d1);
                 var z2 = TransEval(o2, d1, d2);
-                if (z1 + z2 < 0.0f)
+                if (z1 + z2 < new Real(0))
                 {
                     z1 = -z1;
                     z2 = -z2;
@@ -285,7 +284,7 @@ namespace LibTessDotNet
                 // Interpolate between o2 and d2
                 var z1 = TransSign(o1, o2, d1);
                 var z2 = -TransSign(o1, d2, d1);
-                if (z1 + z2 < 0.0f)
+                if (z1 + z2 < new Real(0))
                 {
                     z1 = -z1;
                     z2 = -z2;

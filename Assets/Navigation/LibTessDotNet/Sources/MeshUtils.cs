@@ -37,7 +37,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using ClipperLib;
-using Real = System.Int32;
+using Navigation;
+using Real = Navigation.DeterministicMath.DeterministicInt;
 namespace LibTessDotNet
 {
     public struct Vec3
@@ -93,8 +94,8 @@ namespace LibTessDotNet
         public static int LongAxis(ref Vec3 v)
         {
             int i = 0;
-            if (Math.Abs(v.Y) > Math.Abs(v.X)) i = 1;
-            if (Math.Abs(v.Z) > Math.Abs(i == 0 ? v.X : v.Y)) i = 2;
+            if (Real.Abs(v.Y) > Real.Abs(v.X)) i = 1;
+            if (Real.Abs(v.Z) > Real.Abs(i == 0 ? v.X : v.Y)) i = 2;
             return i;
         }
 
@@ -103,9 +104,9 @@ namespace LibTessDotNet
             return string.Format("{0}, {1}, {2}", X, Y, Z);
         }
 
-        public IntPoint ToIntPoint()
+        public DeterministicVector2 ToIntPoint()
         {
-            return new IntPoint(X, Y);
+            return new DeterministicVector2(X, Y);
         }
     }
 
@@ -254,8 +255,8 @@ namespace LibTessDotNet
                 _prev = _next = null;
                 _anEdge = null;
                 _coords = Vec3.Zero;
-                _s = 0;
-                _t = 0;
+                _s = new Real(0);
+                _t = new Real(0);
                 _pqHandle = new PQHandle();
                 _n = 0;
                 _data = null;
@@ -559,7 +560,7 @@ namespace LibTessDotNet
         /// </summary>
         public static Real FaceArea(Face f)
         {
-            Real area = 0;
+            Real area = new Real(0);
             var e = f._anEdge;
             do
             {

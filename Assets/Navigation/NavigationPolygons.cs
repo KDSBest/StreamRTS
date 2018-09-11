@@ -31,6 +31,22 @@ namespace Navigation
             return copy;
         }
 
+        public List<EdgeIntersectionResult> CalculateAllIntersection(NavigationEdge edge)
+        {
+            List<EdgeIntersectionResult> result = new List<EdgeIntersectionResult>();
+            foreach (var poly in this)
+            {
+                foreach (var constrainedEdge in poly.ConstraintedEdges)
+                {
+                    var r = edge.CalculateIntersection(constrainedEdge);
+                    if (r.SegmentsIntersect)
+                        result.Add(r);
+                }
+            }
+
+            return result;
+        }
+
         public EdgeIntersectionResult CalculateAnyIntersection(NavigationEdge edge)
         {
             foreach (var poly in this)

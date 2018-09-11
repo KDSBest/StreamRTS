@@ -13,14 +13,21 @@ namespace Navigation.DeterministicMath
         public const long One = 1 << SHIFT_AMOUNT;
         public const int OneI = 1 << SHIFT_AMOUNT;
         public static DeterministicInt OneF = new DeterministicInt(1, true);
+        public static readonly DeterministicInt Epsilon = new DeterministicInt(10, false);
 
         #region Constructors
+
         public DeterministicInt(long StartingRawValue, bool UseMultiple)
         {
             this.RawValue = StartingRawValue;
             if (UseMultiple)
                 this.RawValue = this.RawValue << SHIFT_AMOUNT;
         }
+
+        public DeterministicInt(long StartingRawValue) : this(StartingRawValue, true)
+        {
+        }
+
         public DeterministicInt(double DoubleValue)
         {
             DoubleValue *= (double)One;
@@ -123,6 +130,16 @@ namespace Navigation.DeterministicMath
             return new DeterministicInt(one.RawValue + other.RawValue, false);
         }
 
+        public static DeterministicInt operator ++(DeterministicInt one)
+        {
+            return one + (DeterministicInt)1;
+        }
+
+        public static DeterministicInt operator --(DeterministicInt one)
+        {
+            return one - (DeterministicInt)1;
+        }
+
         public static DeterministicInt operator +(DeterministicInt one, int other)
         {
             return one + (DeterministicInt)other;
@@ -138,6 +155,11 @@ namespace Navigation.DeterministicMath
         public static DeterministicInt operator -(DeterministicInt one, DeterministicInt other)
         {
             return new DeterministicInt(one.RawValue - other.RawValue, false);
+        }
+
+        public static DeterministicInt operator -(DeterministicInt one)
+        {
+            return new DeterministicInt(-one.RawValue, false);
         }
 
         public static DeterministicInt operator -(DeterministicInt one, int other)
@@ -258,17 +280,17 @@ namespace Navigation.DeterministicMath
             return (int)(src.RawValue >> SHIFT_AMOUNT);
         }
 
-        public static explicit operator DeterministicInt(int src)
+        public static implicit operator DeterministicInt(int src)
         {
             return new DeterministicInt(src, true);
         }
 
-        public static explicit operator DeterministicInt(long src)
+        public static implicit operator DeterministicInt(long src)
         {
             return new DeterministicInt(src, true);
         }
 
-        public static explicit operator DeterministicInt(ulong src)
+        public static implicit operator DeterministicInt(ulong src)
         {
             return new DeterministicInt((long)src, true);
         }
@@ -453,6 +475,26 @@ namespace Navigation.DeterministicMath
         }
         #endregion
 
+        public static DeterministicInt Max(DeterministicInt x1, DeterministicInt x2)
+        {
+            if (x1 < x2)
+                return x2;
+
+            return x1;
+        }
+
+        public static DeterministicInt Min(DeterministicInt x1, DeterministicInt x2)
+        {
+            if (x2 < x1)
+                return x2;
+
+            return x1;
+        }
+
+        public float ToFloat()
+        {
+            return (float) ToDouble();
+        }
     }
 
 }

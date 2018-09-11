@@ -10,9 +10,9 @@ namespace Assets.Navigation
 {
     public class NavigationMesh
     {
-        private Dictionary<IntPoint, List<NavigationTriangle>> triangleMapping = new Dictionary<IntPoint, List<NavigationTriangle>>();
+        private Dictionary<DeterministicVector2, List<NavigationTriangle>> triangleMapping = new Dictionary<DeterministicVector2, List<NavigationTriangle>>();
         public List<NavigationTriangle> AllTriangle = new List<NavigationTriangle>();
-        private Dictionary<IntPoint, NavigationTriangle> searchCache = new Dictionary<IntPoint, NavigationTriangle>();
+        private Dictionary<DeterministicVector2, NavigationTriangle> searchCache = new Dictionary<DeterministicVector2, NavigationTriangle>();
         private Tess tesselationAlgorithm;
 
         private NavigationPolygons polygons;
@@ -44,9 +44,9 @@ namespace Assets.Navigation
             }
         }
 
-        void UpdateTriangulation(NavigationTriangle t, IntPoint p)
+        void UpdateTriangulation(NavigationTriangle t, DeterministicVector2 p)
         {
-            var v = new IntPoint(p);
+            var v = new DeterministicVector2(p);
 
             AllTriangle.Add(new NavigationTriangle(t.U, t.V, v));
             AllTriangle.Add(new NavigationTriangle(t.V, t.W, v));
@@ -93,7 +93,7 @@ namespace Assets.Navigation
             searchCache.Clear();
         }
 
-        public List<NavigationTriangle> GetTrianglesWithPoint(IntPoint p)
+        public List<NavigationTriangle> GetTrianglesWithPoint(DeterministicVector2 p)
         {
             if (triangleMapping.ContainsKey(p))
                 return triangleMapping[p];
@@ -101,7 +101,7 @@ namespace Assets.Navigation
             return new List<NavigationTriangle>();
         }
 
-        public NavigationTriangle SearchTriangleForPoint(IntPoint p)
+        public NavigationTriangle SearchTriangleForPoint(DeterministicVector2 p)
         {
             if (searchCache.ContainsKey(p))
                 return searchCache[p];
@@ -119,7 +119,7 @@ namespace Assets.Navigation
             return null;
         }
 
-        private void AddTriangleToPointMap(IntPoint p, NavigationTriangle tri)
+        private void AddTriangleToPointMap(DeterministicVector2 p, NavigationTriangle tri)
         {
             if (!triangleMapping.ContainsKey(p))
                 triangleMapping.Add(p, new List<NavigationTriangle>());

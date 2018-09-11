@@ -6,11 +6,11 @@ namespace Assets.Navigation.AStar
 {
     public class AStarContext
     {
-        public IntPoint A;
-        public IntPoint B;
+        public DeterministicVector2 A;
+        public DeterministicVector2 B;
         public NavigationTriangle ATri;
         public NavigationTriangle BTri;
         public PriorityQueue<AStarNode> NodeQueue = new PriorityQueue<AStarNode>();
-        public Dictionary<IntPoint, AStarNode> AllNodes = new Dictionary<IntPoint, AStarNode>();
+        public Dictionary<DeterministicVector2, AStarNode> AllNodes = new Dictionary<DeterministicVector2, AStarNode>();
     }
 }

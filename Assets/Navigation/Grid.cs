@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using LibTessDotNet;
+using Navigation.DeterministicMath;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
@@ -23,9 +24,9 @@ namespace Navigation
 
             Cells.Clear();
 
-            for (int y = Bounding.A.Y; y < Bounding.B.Y; y++)
+            for (DeterministicInt y = Bounding.A.Y; y < Bounding.B.Y; y++)
             {
-                for (int x = Bounding.A.X; x < Bounding.B.X; x++)
+                for (DeterministicInt x = Bounding.A.X; x < Bounding.B.X; x++)
                 {
                     Cells.Add(new GridCell(x, y)
                     {
@@ -41,16 +42,16 @@ namespace Navigation
 
             foreach (var polygon in polygons)
             {
-                var polyStartX = Math.Max(polygon.A.X, Bounding.A.X) - Bounding.A.X;
-                var polyStartY = Math.Max(polygon.A.Y, Bounding.A.Y) - Bounding.A.Y;
-                var polyLenX = Math.Min(polygon.B.X, Bounding.B.X) - Bounding.A.X;
-                var polyLenY = Math.Min(polygon.B.Y, Bounding.B.Y) - Bounding.A.Y;
+                var polyStartX = DeterministicInt.Max(polygon.A.X, Bounding.A.X) - Bounding.A.X;
+                var polyStartY = DeterministicInt.Max(polygon.A.Y, Bounding.A.Y) - Bounding.A.Y;
+                var polyLenX = DeterministicInt.Min(polygon.B.X, Bounding.B.X) - Bounding.A.X;
+                var polyLenY = DeterministicInt.Min(polygon.B.Y, Bounding.B.Y) - Bounding.A.Y;
 
-                for (int x = polyStartX; x < polyLenX; x++)
+                for (DeterministicInt x = polyStartX; x < polyLenX; x++)
                 {
-                    for (int y = polyStartY; y < polyLenY; y++)
+                    for (DeterministicInt y = polyStartY; y < polyLenY; y++)
                     {
-                        Cells[x + y * maxX].Type = GridCellType.Blocked;
+                        Cells[(x + y * maxX).ToInt()].Type = GridCellType.Blocked;
                     }
                 }
             }
@@ -72,16 +73,16 @@ namespace Navigation
 
             foreach (var polygon in polygons)
             {
-                var polyStartX = Math.Max(polygon.A.X, Bounding.A.X) - Bounding.A.X;
-                var polyStartY = Math.Max(polygon.A.Y, Bounding.A.Y) - Bounding.A.Y;
-                var polyLenX = Math.Min(polygon.B.X, Bounding.B.X) - Bounding.A.X;
-                var polyLenY = Math.Min(polygon.B.Y, Bounding.B.Y) - Bounding.A.Y;
+                var polyStartX = DeterministicInt.Max(polygon.A.X, Bounding.A.X) - Bounding.A.X;
+                var polyStartY = DeterministicInt.Max(polygon.A.Y, Bounding.A.Y) - Bounding.A.Y;
+                var polyLenX = DeterministicInt.Min(polygon.B.X, Bounding.B.X) - Bounding.A.X;
+                var polyLenY = DeterministicInt.Min(polygon.B.Y, Bounding.B.Y) - Bounding.A.Y;
 
-                for (int x = polyStartX; x < polyLenX; x++)
+                for (DeterministicInt x = polyStartX; x < polyLenX; x++)
                 {
-                    for (int y = polyStartY; y < polyLenY; y++)
+                    for (DeterministicInt y = polyStartY; y < polyLenY; y++)
                     {
-                        if (Cells[x + y * maxX].Type != expectedType)
+                        if (Cells[(x + y * maxX).ToInt()].Type != expectedType)
                         {
                             return false;
                         }
@@ -91,16 +92,16 @@ namespace Navigation
 
             foreach (var polygon in polygons)
             {
-                var polyStartX = Math.Max(polygon.A.X, Bounding.A.X) - Bounding.A.X;
-                var polyStartY = Math.Max(polygon.A.Y, Bounding.A.Y) - Bounding.A.Y;
-                var polyLenX = Math.Min(polygon.B.X, Bounding.B.X) - Bounding.A.X;
-                var polyLenY = Math.Min(polygon.B.Y, Bounding.B.Y) - Bounding.A.Y;
+                var polyStartX = DeterministicInt.Max(polygon.A.X, Bounding.A.X) - Bounding.A.X;
+                var polyStartY = DeterministicInt.Max(polygon.A.Y, Bounding.A.Y) - Bounding.A.Y;
+                var polyLenX = DeterministicInt.Min(polygon.B.X, Bounding.B.X) - Bounding.A.X;
+                var polyLenY = DeterministicInt.Min(polygon.B.Y, Bounding.B.Y) - Bounding.A.Y;
 
-                for (int x = polyStartX; x < polyLenX; x++)
+                for (DeterministicInt x = polyStartX; x < polyLenX; x++)
                 {
-                    for (int y = polyStartY; y < polyLenY; y++)
+                    for (DeterministicInt y = polyStartY; y < polyLenY; y++)
                     {
-                        Cells[x + y * maxX].Type = resultType;
+                        Cells[(x + y * maxX).ToInt()].Type = resultType;
                     }
                 }
             }

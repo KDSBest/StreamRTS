@@ -35,8 +35,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-
-using Real = System.Int32;
+using Real = Navigation.DeterministicMath.DeterministicInt;
 namespace LibTessDotNet
 {
     /// <summary>
@@ -151,9 +150,9 @@ namespace LibTessDotNet
         /// </summary>
         public const int Undef = ~0;
 
-        public Real SUnitX = 1;
-        public Real SUnitY = 0;
-        public Real SentinelCoord = 2000;
+        public Real SUnitX = new Real(1);
+        public Real SUnitY = new Real(0);
+        public Real SentinelCoord = new Real(20000);
 
         /// <summary>
         /// If true, will remove empty (zero area) polygons.
@@ -198,7 +197,7 @@ namespace LibTessDotNet
         public Tess(IPool pool)
         {
             _normal = Vec3.Zero;
-            _bminX = _bminY = _bmaxX = _bmaxY = 0;
+            _bminX = _bminY = _bmaxX = _bmaxY = new Real(0);
 
             _windingRule = WindingRule.EvenOdd;
             _pool = pool;
@@ -241,13 +240,13 @@ namespace LibTessDotNet
             if (minVal[i] >= maxVal[i])
             {
                 // All vertices are the same -- normal doesn't matter
-                norm = new Vec3(0, 0, 1);
+                norm = new Vec3(new Real(0), new Real(0), new Real(1));
                 return;
             }
 
             // Look for a third vertex which forms the triangle with maximum area
             // (Length of normal == twice the triangle area)
-            Real maxLen2 = 0, tLen2;
+            Real maxLen2 = new Real(0), tLen2;
             var v1 = minVert[i];
             var v2 = maxVert[i];
             Vec3 d1, d2, tNorm;
@@ -266,12 +265,12 @@ namespace LibTessDotNet
                 }
             }
 
-            if (maxLen2 <= 0.0f)
+            if (maxLen2 <= new Real(0))
             {
                 // All points lie on a single line -- any decent normal will do
                 norm = Vec3.Zero;
                 i = Vec3.LongAxis(ref d1);
-                norm[i] = 1;
+                norm[i] = new Real(1);
             }
         }
 
@@ -279,7 +278,7 @@ namespace LibTessDotNet
         {
             // When we compute the normal automatically, we choose the orientation
             // so that the sum of the signed areas of all contours is non-negative.
-            Real area = 0;
+            Real area = new Real(0);
             for (var f = _mesh._fHead._next; f != _mesh._fHead; f = f._next)
             {
                 if (f._anEdge._winding <= 0)
@@ -304,7 +303,7 @@ namespace LibTessDotNet
             var norm = _normal;
 
             bool computedNormal = false;
-            if (norm.X == 0.0f && norm.Y == 0.0f && norm.Z == 0.0f)
+            if (norm.X == new Real(0) && norm.Y == new Real(0) && norm.Z == new Real(0))
             {
                 ComputeNormal(ref norm);
                 _normal = norm;
@@ -313,13 +312,13 @@ namespace LibTessDotNet
 
             int i = Vec3.LongAxis(ref norm);
 
-            _sUnit[i] = 0;
+            _sUnit[i] = new Real(0);
             _sUnit[(i + 1) % 3] = SUnitX;
             _sUnit[(i + 2) % 3] = SUnitY;
 
-            _tUnit[i] = 0;
-            _tUnit[(i + 1) % 3] = norm[i] > 0.0f ? -SUnitY : SUnitY;
-            _tUnit[(i + 2) % 3] = norm[i] > 0.0f ? SUnitX : -SUnitX;
+            _tUnit[i] = new Real(0);
+            _tUnit[(i + 1) % 3] = norm[i] > new Real(0) ? -SUnitY : SUnitY;
+            _tUnit[(i + 2) % 3] = norm[i] > new Real(0) ? SUnitX : -SUnitX;
 
             // Project the vertices onto the sweep plane
             for (var v = _mesh._vHead._next; v != _mesh._vHead; v = v._next)
@@ -402,7 +401,7 @@ namespace LibTessDotNet
                     // The EdgeGoesLeft test guarantees progress even when some triangles
                     // are CW, given that the upper and lower chains are truly monotone.
                     while (lo._Lnext != up && (Geom.EdgeGoesLeft(lo._Lnext)
-                        || Geom.EdgeSign(lo._Org, lo._Dst, lo._Lnext._Dst) <= 0.0f))
+                        || Geom.EdgeSign(lo._Org, lo._Dst, lo._Lnext._Dst) <= 0))
                     {
                         lo = _mesh.Connect(_pool, lo._Lnext, lo)._Sym;
                     }
@@ -412,7 +411,7 @@ namespace LibTessDotNet
                 {
                     // lo.Org is on the left.  We can make CCW triangles from up.Dst.
                     while (lo._Lnext != up && (Geom.EdgeGoesRight(up._Lprev)
-                        || Geom.EdgeSign(up._Dst, up._Org, up._Lprev._Org) >= 0.0f))
+                        || Geom.EdgeSign(up._Dst, up._Org, up._Lprev._Org) >= 0))
                     {
                         up = _mesh.Connect(_pool, up, up._Lprev)._Sym;
                     }
@@ -549,7 +548,7 @@ namespace LibTessDotNet
                 if (NoEmptyPolygons)
                 {
                     var area = MeshUtils.FaceArea(f);
-                    if (area == 0)
+                    if (Real.Abs(area) < Real.Epsilon)
                     {
                         continue;
                     }
@@ -603,7 +602,7 @@ namespace LibTessDotNet
                 if (NoEmptyPolygons)
                 {
                     var area = MeshUtils.FaceArea(f);
-                    if (area == 0)
+                    if (Real.Abs(area) < Real.Epsilon)
                     {
                         continue;
                     }
@@ -698,7 +697,7 @@ namespace LibTessDotNet
 
         private Real SignedArea(IList<ContourVertex> vertices)
         {
-            Real area = 0;
+            Real area = new Real(0);
 
             for (int i = 0; i < vertices.Count; i++)
             {
@@ -753,7 +752,7 @@ namespace LibTessDotNet
             if (forceOrientation != ContourOrientation.Original)
             {
                 var area = SignedArea(vertices);
-                reverse = (forceOrientation == ContourOrientation.Clockwise && area < 0.0f) || (forceOrientation == ContourOrientation.CounterClockwise && area > 0.0f);
+                reverse = (forceOrientation == ContourOrientation.Clockwise && area < new Real(0)) || (forceOrientation == ContourOrientation.CounterClockwise && area > new Real(0));
             }
 
             MeshUtils.Edge e = null;

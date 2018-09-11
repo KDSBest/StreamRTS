@@ -82,12 +82,12 @@ namespace Components.Debug
             {
                 int speed = 6;
 
-                IntPoint direction = new IntPoint();
+                var direction = new DeterministicVector2();
                 for (int i = 1; i < path.Count; i++)
                 {
                     direction = path[i].Position - path[0].Position;
                     direction = direction * speed;
-                    var lenSquared = new DeterministicInt(direction.GetLengthSquared());
+                    var lenSquared = direction.GetLengthSquared();
 
                     int len = DeterministicInt.Sqrt(lenSquared).IntValue;
                     int moves = len / speed;
@@ -98,7 +98,7 @@ namespace Components.Debug
                     }
                 }
 
-                PathA.transform.position += new Vector3(direction.X, 0, direction.Y) * Time.deltaTime;
+                PathA.transform.position += new Vector3(direction.X.ToFloat(), 0, direction.Y.ToFloat()) * Time.deltaTime;
             }
         }
 
@@ -113,8 +113,8 @@ namespace Components.Debug
                 {
                     var newBuilding = new List<NavigationEdge>()
                     {
-                        new NavigationEdge(new IntPoint((int) hitInfo.point.x, (int) hitInfo.point.z),
-                            new IntPoint((int) hitInfo.point.x + 10, (int) hitInfo.point.z + 10))
+                        new NavigationEdge(new DeterministicVector2((int) hitInfo.point.x, (int) hitInfo.point.z),
+                            new DeterministicVector2((int) hitInfo.point.x + 10, (int) hitInfo.point.z + 10))
                     };
 
                     if (map.AddDynamicObject(newBuilding))
@@ -122,10 +122,10 @@ namespace Components.Debug
                         var newBuildingGo = GameObject.Instantiate(DebugBuilding);
 
                         newBuildingGo.transform.position = new Vector3(
-                            newBuilding[0].A.X + (newBuilding[0].B.X - newBuilding[0].A.X) / 2, 1,
-                            newBuilding[0].A.Y + (newBuilding[0].B.Y - newBuilding[0].A.Y) / 2);
+                            (newBuilding[0].A.X + (newBuilding[0].B.X - newBuilding[0].A.X) / 2).ToFloat(), 1,
+                            (newBuilding[0].A.Y + (newBuilding[0].B.Y - newBuilding[0].A.Y) / 2).ToFloat());
                         var size = newBuilding[0].GetDirection();
-                        newBuildingGo.transform.localScale = new Vector3(size.X, 2, size.Y);
+                        newBuildingGo.transform.localScale = new Vector3(size.X.ToFloat(), 2, size.Y.ToFloat());
 
                         this.buildings.Add(newBuilding);
                         this.buildingGameObjects.Add(newBuildingGo);
@@ -189,10 +189,10 @@ namespace Components.Debug
                         Gizmos.color = Color.red;
                     }
 
-                    Gizmos.DrawLine(ToVector(new IntPoint(cell.X, cell.Y)), ToVector(new IntPoint(cell.X + 1, cell.Y)));
-                    Gizmos.DrawLine(ToVector(new IntPoint(cell.X, cell.Y)), ToVector(new IntPoint(cell.X, cell.Y + 1)));
-                    Gizmos.DrawLine(ToVector(new IntPoint(cell.X + 1, cell.Y + 1)), ToVector(new IntPoint(cell.X + 1, cell.Y)));
-                    Gizmos.DrawLine(ToVector(new IntPoint(cell.X + 1, cell.Y + 1)), ToVector(new IntPoint(cell.X, cell.Y + 1)));
+                    Gizmos.DrawLine(ToVector(new DeterministicVector2(cell.X, cell.Y)), ToVector(new DeterministicVector2(cell.X + 1, cell.Y)));
+                    Gizmos.DrawLine(ToVector(new DeterministicVector2(cell.X, cell.Y)), ToVector(new DeterministicVector2(cell.X, cell.Y + 1)));
+                    Gizmos.DrawLine(ToVector(new DeterministicVector2(cell.X + 1, cell.Y + 1)), ToVector(new DeterministicVector2(cell.X + 1, cell.Y)));
+                    Gizmos.DrawLine(ToVector(new DeterministicVector2(cell.X + 1, cell.Y + 1)), ToVector(new DeterministicVector2(cell.X, cell.Y + 1)));
                 }
             }
 
@@ -200,8 +200,8 @@ namespace Components.Debug
             {
                 if (map.Pathfinding != null)
                 {
-                    var from = new IntPoint((int) PathA.transform.position.x, (int) PathA.transform.position.z);
-                    var to = new IntPoint((int) PathB.transform.position.x, (int) PathB.transform.position.z);
+                    var from = new DeterministicVector2((int) PathA.transform.position.x, (int) PathA.transform.position.z);
+                    var to = new DeterministicVector2((int) PathB.transform.position.x, (int) PathB.transform.position.z);
 
                     Gizmos.DrawLine(ToVector(from), ToVector(to));
 
@@ -222,12 +222,12 @@ namespace Components.Debug
 
         private Vector3 ToVector(Vec3 point)
         {
-            return new Vector3(point.X, 0, point.Y);
+            return new Vector3(point.X.ToFloat(), 0, point.Y.ToFloat());
         }
 
-        private Vector3 ToVector(IntPoint point)
+        private Vector3 ToVector(DeterministicVector2 point)
         {
-            return new Vector3(point.X, 0, point.Y);
+            return new Vector3(point.X.ToFloat(), 0, point.Y.ToFloat());
         }
 
         private static void DrawPolygons(NavigationPolygons polygons, Color color)
@@ -243,12 +243,12 @@ namespace Components.Debug
             Gizmos.color = color;
             var p0 = region[region.Count - 1];
             var p1 = region[0];
-            Gizmos.DrawLine(new Vector3(p0.X, 0, p0.Y), new Vector3(p1.X, 0, p1.Y));
+            Gizmos.DrawLine(new Vector3(p0.X.ToFloat(), 0, p0.Y.ToFloat()), new Vector3(p1.X.ToFloat(), 0, p1.Y.ToFloat()));
             for (int i = 1; i < region.Count; i++)
             {
                 p0 = region[i - 1];
                 p1 = region[i];
-                Gizmos.DrawLine(new Vector3(p0.X, 0, p0.Y), new Vector3(p1.X, 0, p1.Y));
+                Gizmos.DrawLine(new Vector3(p0.X.ToFloat(), 0, p0.Y.ToFloat()), new Vector3(p1.X.ToFloat(), 0, p1.Y.ToFloat()));
             }
         }
 
@@ -266,22 +266,22 @@ namespace Components.Debug
             p2 = go.transform.TransformPoint(p2);
             p3 = go.transform.TransformPoint(p3);
             p4 = go.transform.TransformPoint(p4);
-            points.Add(new IntPoint()
+            points.Add(new DeterministicVector2()
             {
                 X = (int)p1.x - funnelSize,
                 Y = (int)p1.z - funnelSize
             });
-            points.Add(new IntPoint()
+            points.Add(new DeterministicVector2()
             {
                 X = (int)p2.x + funnelSize,
                 Y = (int)p2.z - funnelSize
             });
-            points.Add(new IntPoint()
+            points.Add(new DeterministicVector2()
             {
                 X = (int)p3.x + funnelSize,
                 Y = (int)p3.z + funnelSize
             });
-            points.Add(new IntPoint()
+            points.Add(new DeterministicVector2()
             {
                 X = (int)p4.x - funnelSize,
                 Y = (int)p4.z + funnelSize

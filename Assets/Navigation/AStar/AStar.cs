@@ -24,7 +24,7 @@ namespace Assets.Navigation.AStar
             this.constrainedEdgePolygons = constrainedEdgePolygons;
         }
 
-        public List<AStarNode> CalculatePath(IntPoint a, IntPoint b)
+        public List<AStarNode> CalculatePath(DeterministicVector2 a, DeterministicVector2 b)
         {
             AStarContext context = new AStarContext()
             {
@@ -63,8 +63,8 @@ namespace Assets.Navigation.AStar
                 edge.A = path[currentPosition].Position;
                 edge.B = path[currentPosition + 2].Position;
 
-                var result = constrainedEdgePolygons.CalculateAnyIntersection(edge);
-                if (result.SegmentsIntersect)
+                var result = constrainedEdgePolygons.CalculateAllIntersection(edge);
+                if (CanNotOptimize(result))
                 {
                     currentPosition++;
                 }
@@ -73,6 +73,22 @@ namespace Assets.Navigation.AStar
                     path.RemoveAt(currentPosition + 1);
                 }
             }
+        }
+
+        private bool CanNotOptimize(List<EdgeIntersectionResult> result)
+        {
+            if (result.Count == 0)
+                return false;
+
+            if (result.Count > 2)
+                return true;
+
+
+            if(result.Count > 1)
+            Debug.Log("Deltas " + result[0].Deltas.X.ToInt() + " " + result[0].Deltas.Y.ToInt() + " and " + result[1].Deltas.X.ToInt() + " " + result[1].Deltas.Y.ToInt());
+            else
+                Debug.Log("Deltas " + result[0].Deltas.X.ToInt() + " " + result[0].Deltas.Y.ToInt());
+            return result[0].SegmentsIntersect && !(result[0].Deltas.X == 1 || result[0].Deltas.Y == 0 || result[0].Deltas.X == 0 || result[0].Deltas.Y == 1);
         }
 
         public List<AStarNode> CalculateNaivePath(AStarContext context)
@@ -161,7 +177,7 @@ namespace Assets.Navigation.AStar
             AddPointToQueue(triangle.W, parent, context);
         }
 
-        private void AddPointToQueue(IntPoint trianglePoint, AStarNode parent, AStarContext context)
+        private void AddPointToQueue(DeterministicVector2 trianglePoint, AStarNode parent, AStarContext context)
         {
             if (context.AllNodes.ContainsKey(trianglePoint))
             {
