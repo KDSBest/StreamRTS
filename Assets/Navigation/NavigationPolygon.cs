@@ -45,10 +45,10 @@ namespace Navigation
 
             foreach (var p in this)
             {
-                min.X = DeterministicInt.Min(p.X, min.X);
-                min.Y = DeterministicInt.Min(p.Y, min.Y);
-                max.X = DeterministicInt.Max(p.X, max.X);
-                max.Y = DeterministicInt.Max(p.Y, max.Y);
+                min.X = DeterministicFloat.Min(p.X, min.X);
+                min.Y = DeterministicFloat.Min(p.Y, min.Y);
+                max.X = DeterministicFloat.Max(p.X, max.X);
+                max.Y = DeterministicFloat.Max(p.Y, max.Y);
             }
 
             return new NavigationEdge(min, max);

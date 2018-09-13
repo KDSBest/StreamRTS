@@ -35,7 +35,7 @@ namespace Navigation
                 return new NavigationEdge(W, U);
             }
         }
-        private static DeterministicInt Sign(DeterministicVector2 p1, DeterministicVector2 p2, DeterministicVector2 p3)
+        private static DeterministicFloat Sign(DeterministicVector2 p1, DeterministicVector2 p2, DeterministicVector2 p3)
         {
             return (p1.X - p3.X) * (p2.Y - p3.Y) - (p2.X - p3.X) * (p1.Y - p3.Y);
         }

@@ -8,15 +8,15 @@ namespace Navigation
 {
     public struct DeterministicVector2
     {
-        public DeterministicInt X;
-        public DeterministicInt Y;
+        public DeterministicFloat X;
+        public DeterministicFloat Y;
         public DeterministicVector2(int X, int Y)
         {
-            this.X = new DeterministicInt(X, true);
-            this.Y = new DeterministicInt(Y, true);
+            this.X = new DeterministicFloat(X, true);
+            this.Y = new DeterministicFloat(Y, true);
         }
 
-        public DeterministicVector2(DeterministicInt X, DeterministicInt Y)
+        public DeterministicVector2(DeterministicFloat X, DeterministicFloat Y)
         {
             this.X = X;
             this.Y = Y;
@@ -47,27 +47,27 @@ namespace Navigation
         {
             return new DeterministicVector2(a.X + b.X, a.Y + b.Y);
         }
-        public static DeterministicVector2 operator *(DeterministicVector2 a, int b)
+        public static DeterministicVector2 operator *(DeterministicVector2 a, DeterministicFloat b)
         {
             return new DeterministicVector2(a.X * b, a.Y * b);
         }
 
-        public static DeterministicVector2 operator /(DeterministicVector2 a, int b)
+        public static DeterministicVector2 operator /(DeterministicVector2 a, DeterministicFloat b)
         {
             return new DeterministicVector2(a.X / b, a.Y / b);
         }
 
-        public DeterministicInt ManhattanHeuristic()
+        public DeterministicFloat ManhattanHeuristic()
         {
-            return DeterministicInt.Abs(X) + DeterministicInt.Abs(Y);
+            return DeterministicFloat.Abs(X) + DeterministicFloat.Abs(Y);
         }
 
-        public DeterministicInt CrossProduct(DeterministicVector2 b)
+        public DeterministicFloat CrossProduct(DeterministicVector2 b)
         {
             return this.X * b.Y - this.Y * b.X;
         }
 
-        public DeterministicInt DotProduct(DeterministicVector2 b)
+        public DeterministicFloat DotProduct(DeterministicVector2 b)
         {
             return this.X * b.X + this.Y * b.Y;
         }
@@ -97,14 +97,34 @@ namespace Navigation
             return new DeterministicVector2(X, Y);
         }
 
-        public DeterministicInt GetLengthSquared()
+        public DeterministicFloat GetLengthSquared()
         {
             return X * X + Y * Y;
         }
 
-        public DeterministicInt GetLength()
+        public DeterministicFloat GetLength()
         {
-            return DeterministicInt.Sqrt(GetLengthSquared());
+            return DeterministicFloat.Sqrt(GetLengthSquared());
+        }
+
+        public DeterministicVector2 Normalize()
+        {
+            var lenght = GetLength();
+
+            if (lenght == 0)
+                return new DeterministicVector2(X, Y);
+
+            return new DeterministicVector2(X / lenght, Y / lenght);
+        }
+
+        public DeterministicVector2 PerpendicularClockwise()
+        {
+            return new DeterministicVector2(this.Y, -this.X);
+        }
+
+        public DeterministicVector2 PerpendicularCounterClockwise()
+        {
+            return new DeterministicVector2(-this.Y, this.X);
         }
     }
 }

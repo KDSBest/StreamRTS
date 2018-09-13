@@ -3,11 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Assets.Navigation;
 using Assets.Navigation.AStar;
 using ClipperLib;
+using Gameplay;
 using LibTessDotNet;
-using UnityEngine;
+using Navigation.DeterministicMath;
 using Debug = System.Diagnostics.Debug;
 
 namespace Navigation
@@ -18,11 +20,15 @@ namespace Navigation
         private NavigationPolygons staticObjects;
         private List<List<NavigationEdge>> dynamicObjects = new List<List<NavigationEdge>>();
         private NavigationPolygons floorWithStaticObjects = new NavigationPolygons();
-        
+
+        public DeterministicFloat NeighbourSearchSize = 5;
         public AStar Pathfinding;
         public NavigationPolygons FloorWithDynamicObjects = new NavigationPolygons();
         public NavigationMesh NavigationMesh = new NavigationMesh();
         public Grid Grid = new Grid();
+
+        // TODO: this is ugly to have a circular reference between units and map
+        public List<Unit> AllUnits = new List<Unit>();
 
         public Map(NavigationPolygon floor, NavigationPolygons staticObjects)
         {
@@ -86,6 +92,11 @@ namespace Navigation
             FloorWithDynamicObjects.CalculateConstrainedEdges();
             NavigationMesh.Initialize(FloorWithDynamicObjects);
             Pathfinding = new AStar(NavigationMesh, FloorWithDynamicObjects);
+
+            foreach (var unit in AllUnits)
+            {
+                unit.OnPathRecalculationNeeded();
+            }
         }
 
         private void Clip(NavigationPolygons floor, List<NavigationEdge> dynamicObject)
@@ -147,6 +158,55 @@ namespace Navigation
                 throw new Exception("Can't clip floorWithStaticObjects.");
 
             clipper.Reset();
+        }
+
+        public void UpdateUnits()
+        {
+            var neighbourSearchSizeSquared = NeighbourSearchSize * NeighbourSearchSize;
+            for (var i = 0; i < AllUnits.Count; i++)
+            {
+                AllUnits[i].Neighbours.Clear();
+            }
+
+            for (var i = 0; i < AllUnits.Count; i++)
+            {
+                for (int j = i + 1; j < AllUnits.Count; j++)
+                {
+                    var distanceSquared = (AllUnits[i].Position - AllUnits[j].Position).GetLengthSquared();
+
+                    if (distanceSquared <= neighbourSearchSizeSquared)
+                    {
+                        AllUnits[i].Neighbours.Add(AllUnits[j]);
+                        AllUnits[j].Neighbours.Add(AllUnits[i]);
+                    }
+                }
+                this.AllUnits[i].Update();
+            }
+
+            //var threads = new Thread[10];
+            //for (int i = 0; i < threads.Length; i++)
+            //{
+            //    threads[i] = new Thread(() =>
+            //    {
+            //        for (int j = i; j < this.AllUnits.Count; j += threads.Length)
+            //        {
+            //            this.AllUnits[j].Update();
+            //        }
+            //    });
+            //    threads[i].Start();
+            //}
+
+            //for (int i = 0; i < threads.Length; i++)
+            //{
+            //    if (threads[i].IsAlive)
+            //        threads[i].Join();
+            //}
+
+            // This manipulates the behaviour so we can't update that on the fly in threading (else it's not deterministic!!!)
+            foreach (var unit in AllUnits)
+            {
+                unit.CopyNewValuesAfterUpdate();
+            }
         }
     }
 

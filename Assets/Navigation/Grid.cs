@@ -24,9 +24,9 @@ namespace Navigation
 
             Cells.Clear();
 
-            for (DeterministicInt y = Bounding.A.Y; y < Bounding.B.Y; y++)
+            for (DeterministicFloat y = Bounding.A.Y; y < Bounding.B.Y; y++)
             {
-                for (DeterministicInt x = Bounding.A.X; x < Bounding.B.X; x++)
+                for (DeterministicFloat x = Bounding.A.X; x < Bounding.B.X; x++)
                 {
                     Cells.Add(new GridCell(x, y)
                     {
@@ -42,14 +42,14 @@ namespace Navigation
 
             foreach (var polygon in polygons)
             {
-                var polyStartX = DeterministicInt.Max(polygon.A.X, Bounding.A.X) - Bounding.A.X;
-                var polyStartY = DeterministicInt.Max(polygon.A.Y, Bounding.A.Y) - Bounding.A.Y;
-                var polyLenX = DeterministicInt.Min(polygon.B.X, Bounding.B.X) - Bounding.A.X;
-                var polyLenY = DeterministicInt.Min(polygon.B.Y, Bounding.B.Y) - Bounding.A.Y;
+                var polyStartX = DeterministicFloat.Max(polygon.A.X, Bounding.A.X) - Bounding.A.X;
+                var polyStartY = DeterministicFloat.Max(polygon.A.Y, Bounding.A.Y) - Bounding.A.Y;
+                var polyLenX = DeterministicFloat.Min(polygon.B.X, Bounding.B.X) - Bounding.A.X;
+                var polyLenY = DeterministicFloat.Min(polygon.B.Y, Bounding.B.Y) - Bounding.A.Y;
 
-                for (DeterministicInt x = polyStartX; x < polyLenX; x++)
+                for (DeterministicFloat x = polyStartX; x < polyLenX; x++)
                 {
-                    for (DeterministicInt y = polyStartY; y < polyLenY; y++)
+                    for (DeterministicFloat y = polyStartY; y < polyLenY; y++)
                     {
                         Cells[(x + y * maxX).ToInt()].Type = GridCellType.Blocked;
                     }
@@ -73,14 +73,14 @@ namespace Navigation
 
             foreach (var polygon in polygons)
             {
-                var polyStartX = DeterministicInt.Max(polygon.A.X, Bounding.A.X) - Bounding.A.X;
-                var polyStartY = DeterministicInt.Max(polygon.A.Y, Bounding.A.Y) - Bounding.A.Y;
-                var polyLenX = DeterministicInt.Min(polygon.B.X, Bounding.B.X) - Bounding.A.X;
-                var polyLenY = DeterministicInt.Min(polygon.B.Y, Bounding.B.Y) - Bounding.A.Y;
+                var polyStartX = DeterministicFloat.Max(polygon.A.X, Bounding.A.X) - Bounding.A.X;
+                var polyStartY = DeterministicFloat.Max(polygon.A.Y, Bounding.A.Y) - Bounding.A.Y;
+                var polyLenX = DeterministicFloat.Min(polygon.B.X, Bounding.B.X) - Bounding.A.X;
+                var polyLenY = DeterministicFloat.Min(polygon.B.Y, Bounding.B.Y) - Bounding.A.Y;
 
-                for (DeterministicInt x = polyStartX; x < polyLenX; x++)
+                for (DeterministicFloat x = polyStartX; x < polyLenX; x++)
                 {
-                    for (DeterministicInt y = polyStartY; y < polyLenY; y++)
+                    for (DeterministicFloat y = polyStartY; y < polyLenY; y++)
                     {
                         if (Cells[(x + y * maxX).ToInt()].Type != expectedType)
                         {
@@ -92,14 +92,14 @@ namespace Navigation
 
             foreach (var polygon in polygons)
             {
-                var polyStartX = DeterministicInt.Max(polygon.A.X, Bounding.A.X) - Bounding.A.X;
-                var polyStartY = DeterministicInt.Max(polygon.A.Y, Bounding.A.Y) - Bounding.A.Y;
-                var polyLenX = DeterministicInt.Min(polygon.B.X, Bounding.B.X) - Bounding.A.X;
-                var polyLenY = DeterministicInt.Min(polygon.B.Y, Bounding.B.Y) - Bounding.A.Y;
+                var polyStartX = DeterministicFloat.Max(polygon.A.X, Bounding.A.X) - Bounding.A.X;
+                var polyStartY = DeterministicFloat.Max(polygon.A.Y, Bounding.A.Y) - Bounding.A.Y;
+                var polyLenX = DeterministicFloat.Min(polygon.B.X, Bounding.B.X) - Bounding.A.X;
+                var polyLenY = DeterministicFloat.Min(polygon.B.Y, Bounding.B.Y) - Bounding.A.Y;
 
-                for (DeterministicInt x = polyStartX; x < polyLenX; x++)
+                for (DeterministicFloat x = polyStartX; x < polyLenX; x++)
                 {
-                    for (DeterministicInt y = polyStartY; y < polyLenY; y++)
+                    for (DeterministicFloat y = polyStartY; y < polyLenY; y++)
                     {
                         Cells[(x + y * maxX).ToInt()].Type = resultType;
                     }

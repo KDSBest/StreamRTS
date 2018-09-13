@@ -34,7 +34,8 @@
 
 using System;
 using System.Diagnostics;
-using Real = Navigation.DeterministicMath.DeterministicInt;
+using Navigation.DeterministicMath;
+
 namespace LibTessDotNet
 {
     internal static class Geom
@@ -59,7 +60,7 @@ namespace LibTessDotNet
 
         public static bool VertCCW(MeshUtils.Vertex u, MeshUtils.Vertex v, MeshUtils.Vertex w)
         {
-            return (u._s * (v._t - w._t) + v._s * (w._t - u._t) + w._s * (u._t - v._t)) >= new Real(0);
+            return (u._s * (v._t - w._t) + v._s * (w._t - u._t) + w._s * (u._t - v._t)) >= new DeterministicFloat(0);
         }
         public static bool VertEq(MeshUtils.Vertex lhs, MeshUtils.Vertex rhs)
         {
@@ -81,14 +82,14 @@ namespace LibTessDotNet
         /// let r be the negated result (this evaluates (uw)(v->s)), then
         /// r is guaranteed to satisfy MIN(u->t,w->t) <= r <= MAX(u->t,w->t).
         /// </summary>
-        public static Real EdgeEval(MeshUtils.Vertex u, MeshUtils.Vertex v, MeshUtils.Vertex w)
+        public static DeterministicFloat EdgeEval(MeshUtils.Vertex u, MeshUtils.Vertex v, MeshUtils.Vertex w)
         {
             Debug.Assert(VertLeq(u, v) && VertLeq(v, w));
 
             var gapL = v._s - u._s;
             var gapR = w._s - v._s;
 
-            if (gapL + gapR > new Real(0))
+            if (gapL + gapR > new DeterministicFloat(0))
             {
                 if (gapL < gapR)
                 {
@@ -100,7 +101,7 @@ namespace LibTessDotNet
                 }
             }
             /* vertical line */
-            return new Real(0);
+            return new DeterministicFloat(0);
         }
 
         /// <summary>
@@ -108,19 +109,19 @@ namespace LibTessDotNet
         /// is cheaper to evaluate. Returns > 0, == 0 , or < 0
         /// as v is above, on, or below the edge uw.
         /// </summary>
-        public static Real EdgeSign(MeshUtils.Vertex u, MeshUtils.Vertex v, MeshUtils.Vertex w)
+        public static DeterministicFloat EdgeSign(MeshUtils.Vertex u, MeshUtils.Vertex v, MeshUtils.Vertex w)
         {
             Debug.Assert(VertLeq(u, v) && VertLeq(v, w));
 
             var gapL = v._s - u._s;
             var gapR = w._s - v._s;
 
-            if (gapL + gapR > new Real(0))
+            if (gapL + gapR > new DeterministicFloat(0))
             {
                 return (v._t - w._t) * gapL + (v._t - u._t) * gapR;
             }
             /* vertical line */
-            return new Real(0);
+            return new DeterministicFloat(0);
         }
 
         public static bool TransLeq(MeshUtils.Vertex lhs, MeshUtils.Vertex rhs)
@@ -128,14 +129,14 @@ namespace LibTessDotNet
             return (lhs._t < rhs._t) || (lhs._t == rhs._t && lhs._s <= rhs._s);
         }
 
-        public static Real TransEval(MeshUtils.Vertex u, MeshUtils.Vertex v, MeshUtils.Vertex w)
+        public static DeterministicFloat TransEval(MeshUtils.Vertex u, MeshUtils.Vertex v, MeshUtils.Vertex w)
         {
             Debug.Assert(TransLeq(u, v) && TransLeq(v, w));
 
             var gapL = v._t - u._t;
             var gapR = w._t - v._t;
 
-            if (gapL + gapR > new Real(0))
+            if (gapL + gapR > new DeterministicFloat(0))
             {
                 if (gapL < gapR)
                 {
@@ -147,22 +148,22 @@ namespace LibTessDotNet
                 }
             }
             /* vertical line */
-            return new Real(0);
+            return new DeterministicFloat(0);
         }
 
-        public static Real TransSign(MeshUtils.Vertex u, MeshUtils.Vertex v, MeshUtils.Vertex w)
+        public static DeterministicFloat TransSign(MeshUtils.Vertex u, MeshUtils.Vertex v, MeshUtils.Vertex w)
         {
             Debug.Assert(TransLeq(u, v) && TransLeq(v, w));
 
             var gapL = v._t - u._t;
             var gapR = w._t - v._t;
 
-            if (gapL + gapR > new Real(0))
+            if (gapL + gapR > new DeterministicFloat(0))
             {
                 return (v._s - w._s) * gapL + (v._s - u._s) * gapR;
             }
             /* vertical line */
-            return new Real(0);
+            return new DeterministicFloat(0);
         }
 
         public static bool EdgeGoesLeft(MeshUtils.Edge e)
@@ -175,9 +176,9 @@ namespace LibTessDotNet
             return VertLeq(e._Org, e._Dst);
         }
 
-        public static Real VertL1dist(MeshUtils.Vertex u, MeshUtils.Vertex v)
+        public static DeterministicFloat VertL1dist(MeshUtils.Vertex u, MeshUtils.Vertex v)
         {
-            return Real.Abs(u._s - v._s) + Real.Abs(u._t - v._t);
+            return DeterministicFloat.Abs(u._s - v._s) + DeterministicFloat.Abs(u._t - v._t);
         }
 
         public static void AddWinding(MeshUtils.Edge eDst, MeshUtils.Edge eSrc)
@@ -186,15 +187,15 @@ namespace LibTessDotNet
             eDst._Sym._winding += eSrc._Sym._winding;
         }
 
-        public static Real Interpolate(Real a, Real x, Real b, Real y)
+        public static DeterministicFloat Interpolate(DeterministicFloat a, DeterministicFloat x, DeterministicFloat b, DeterministicFloat y)
         {
             if (a < 0)
             {
-                a = new Real(0);
+                a = new DeterministicFloat(0);
             }
             if (b < 0)
             {
-                b = new Real(0);
+                b = new DeterministicFloat(0);
             }
             return ((a <= b) ? ((b == 0) ? ((x+y) / 2)
                     : (x + (y-x) * (a/(a+b))))
@@ -236,7 +237,7 @@ namespace LibTessDotNet
                 // Interpolate between o2 and d1
                 var z1 = EdgeEval(o1, o2, d1);
                 var z2 = EdgeEval(o2, d1, d2);
-                if (z1 + z2 < new Real(0))
+                if (z1 + z2 < new DeterministicFloat(0))
                 {
                     z1 = -z1;
                     z2 = -z2;
@@ -248,7 +249,7 @@ namespace LibTessDotNet
                 // Interpolate between o2 and d2
                 var z1 = EdgeSign(o1, o2, d1);
                 var z2 = -EdgeSign(o1, d2, d1);
-                if (z1 + z2 < new Real(0))
+                if (z1 + z2 < new DeterministicFloat(0))
                 {
                     z1 = -z1;
                     z2 = -z2;
@@ -272,7 +273,7 @@ namespace LibTessDotNet
                 // Interpolate between o2 and d1
                 var z1 = TransEval(o1, o2, d1);
                 var z2 = TransEval(o2, d1, d2);
-                if (z1 + z2 < new Real(0))
+                if (z1 + z2 < new DeterministicFloat(0))
                 {
                     z1 = -z1;
                     z2 = -z2;
@@ -284,7 +285,7 @@ namespace LibTessDotNet
                 // Interpolate between o2 and d2
                 var z1 = TransSign(o1, o2, d1);
                 var z2 = -TransSign(o1, d2, d1);
-                if (z1 + z2 < new Real(0))
+                if (z1 + z2 < new DeterministicFloat(0))
                 {
                     z1 = -z1;
                     z2 = -z2;

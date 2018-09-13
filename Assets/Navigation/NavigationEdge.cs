@@ -50,7 +50,7 @@ namespace Navigation
             return B - A;
         }
 
-        public DeterministicInt GetLengthSquared()
+        public DeterministicFloat GetLengthSquared()
         {
             var size = this.GetDirection();
             return size.X * size.X + size.Y * size.Y;
@@ -87,20 +87,20 @@ namespace Navigation
             // find closes points
             if (t1 < 0)
             {
-                t1 = new DeterministicInt(0);
+                t1 = new DeterministicFloat(0);
             }
             else if(t1 > 1)
             {
-                t1 = new DeterministicInt(1);
+                t1 = new DeterministicFloat(1);
             }
 
             if (t2 < 0)
             {
-                t1 = new DeterministicInt(0);
+                t1 = new DeterministicFloat(0);
             }
             else if (t2 > 1)
             {
-                t2 = new DeterministicInt(1);
+                t2 = new DeterministicFloat(1);
             }
 
             result.SegmentIntersection = new NavigationEdge(new DeterministicVector2(this.A.X + dx12 * t1, this.A.Y + dy12 * t1), new DeterministicVector2(other.A.X + dx34 * t2, other.A.Y + dy34 * t2));
@@ -145,5 +145,61 @@ namespace Navigation
         {
             return A == p || B == p;
         }
+
+        public NavigationEdgeDistanceResult GetDistance(DeterministicVector2 pt)
+        {
+            DeterministicFloat dx = B.X - A.X;
+            DeterministicFloat dy = B.Y - A.Y;
+
+            var lenSquared = (dx * dx + dy * dy);
+            if (lenSquared == 0)
+            {
+                // It's a point not a line segment.
+                dx = pt.X - A.X;
+                dy = pt.Y - A.Y;
+
+                return new NavigationEdgeDistanceResult()
+                {
+                    ClosestPoint = A,
+                    Distance = DeterministicFloat.Sqrt(dx * dx + dy * dy),
+                    IsOnLine = false
+                };
+            }
+
+            // Calculate the t that minimizes the distance.
+            DeterministicFloat t = ((pt.X - A.X) * dx + (pt.Y - A.Y) * dy) / lenSquared;
+
+            DeterministicVector2 closest;
+            bool isOnLine = false;
+            // See if this represents one of the segment's
+            // end points or a point in the middle.
+            if (t < 0)
+            {
+                closest = new DeterministicVector2(A.X, A.Y);
+                dx = pt.X - A.X;
+                dy = pt.Y - A.Y;
+            }
+            else if (t > 1)
+            {
+                closest = new DeterministicVector2(B.X, B.Y);
+                dx = pt.X - B.X;
+                dy = pt.Y - B.Y;
+            }
+            else
+            {
+                isOnLine = true;
+                closest = new DeterministicVector2(A.X + t * dx, A.Y + t * dy);
+                dx = pt.X - closest.X;
+                dy = pt.Y - closest.Y;
+            }
+
+            return new NavigationEdgeDistanceResult()
+            {
+                ClosestPoint = closest,
+                Distance = DeterministicFloat.Sqrt(dx * dx + dy * dy),
+                IsOnLine = isOnLine
+            };
+        }
+
     }
 }

@@ -38,16 +38,17 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using ClipperLib;
 using Navigation;
-using Real = Navigation.DeterministicMath.DeterministicInt;
+using Navigation.DeterministicMath;
+
 namespace LibTessDotNet
 {
     public struct Vec3
     {
         public readonly static Vec3 Zero = new Vec3();
 
-        public Real X, Y, Z;
+        public DeterministicFloat X, Y, Z;
 
-        public Real this[int index]
+        public DeterministicFloat this[int index]
         {
             get
             {
@@ -65,7 +66,7 @@ namespace LibTessDotNet
             }
         }
 
-        public Vec3(Real x, Real y, Real z)
+        public Vec3(DeterministicFloat x, DeterministicFloat y, DeterministicFloat z)
         {
             X = x;
             Y = y;
@@ -86,7 +87,7 @@ namespace LibTessDotNet
             v.Z = -v.Z;
         }
 
-        public static void Dot(ref Vec3 u, ref Vec3 v, out Real dot)
+        public static void Dot(ref Vec3 u, ref Vec3 v, out DeterministicFloat dot)
         {
             dot = u.X * v.X + u.Y * v.Y + u.Z * v.Z;
         }
@@ -94,8 +95,8 @@ namespace LibTessDotNet
         public static int LongAxis(ref Vec3 v)
         {
             int i = 0;
-            if (Real.Abs(v.Y) > Real.Abs(v.X)) i = 1;
-            if (Real.Abs(v.Z) > Real.Abs(i == 0 ? v.X : v.Y)) i = 2;
+            if (DeterministicFloat.Abs(v.Y) > DeterministicFloat.Abs(v.X)) i = 1;
+            if (DeterministicFloat.Abs(v.Z) > DeterministicFloat.Abs(i == 0 ? v.X : v.Y)) i = 2;
             return i;
         }
 
@@ -241,7 +242,7 @@ namespace LibTessDotNet
             internal Edge _anEdge;
 
             internal Vec3 _coords;
-            internal Real _s, _t;
+            internal DeterministicFloat _s, _t;
             internal PQHandle _pqHandle;
             internal int _n;
             internal object _data;
@@ -255,8 +256,8 @@ namespace LibTessDotNet
                 _prev = _next = null;
                 _anEdge = null;
                 _coords = Vec3.Zero;
-                _s = new Real(0);
-                _t = new Real(0);
+                _s = new DeterministicFloat(0);
+                _t = new DeterministicFloat(0);
                 _pqHandle = new PQHandle();
                 _n = 0;
                 _data = null;
@@ -558,9 +559,9 @@ namespace LibTessDotNet
         /// <summary>
         /// Return signed area of face.
         /// </summary>
-        public static Real FaceArea(Face f)
+        public static DeterministicFloat FaceArea(Face f)
         {
-            Real area = new Real(0);
+            DeterministicFloat area = new DeterministicFloat(0);
             var e = f._anEdge;
             do
             {

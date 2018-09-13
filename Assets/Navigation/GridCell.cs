@@ -4,11 +4,11 @@ namespace Navigation
 {
     public class GridCell
     {
-        public DeterministicInt X;
-        public DeterministicInt Y;
+        public DeterministicFloat X;
+        public DeterministicFloat Y;
         public GridCellType Type;
 
-        public GridCell(DeterministicInt x, DeterministicInt y)
+        public GridCell(DeterministicFloat x, DeterministicFloat y)
         {
             Type = GridCellType.Blocked;
             X = x;

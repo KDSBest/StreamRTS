@@ -16,10 +16,8 @@ namespace Components.Debug
         public bool DebugClipper = true;
         public bool DebugTriangulation = true;
         public bool DebugGrid = true;
-        public bool DebugPath = true;
-        public bool DebugMove = false;
 
-        private Map map;
+        public Map Map;
         private List<List<NavigationEdge>> buildings = new List<List<NavigationEdge>>();
         private List<GameObject> buildingGameObjects = new List<GameObject>();
 
@@ -41,7 +39,7 @@ namespace Components.Debug
             NavigationPolygon floorObjectsPoly;
             ProzessFloorAndStaticObjects(floorObject, staticObjects, out staticObjectsPoly, out floorObjectsPoly);
 
-            map = new Map(floorObjectsPoly, staticObjectsPoly);
+            Map = new Map(floorObjectsPoly, staticObjectsPoly);
         }
 
         private void ProzessFloorAndStaticObjects(NavigationFloorComponent floorObject,
@@ -77,29 +75,6 @@ namespace Components.Debug
             {
                 ChangeBuildings(false);
             }
-
-            if (DebugMove && path != null)
-            {
-                int speed = 6;
-
-                var direction = new DeterministicVector2();
-                for (int i = 1; i < path.Count; i++)
-                {
-                    direction = path[i].Position - path[0].Position;
-                    direction = direction * speed;
-                    var lenSquared = direction.GetLengthSquared();
-
-                    int len = DeterministicInt.Sqrt(lenSquared).IntValue;
-                    int moves = len / speed;
-                    if (moves != 0)
-                    {
-                        direction = direction / moves;
-                        break;
-                    }
-                }
-
-                PathA.transform.position += new Vector3(direction.X.ToFloat(), 0, direction.Y.ToFloat()) * Time.deltaTime;
-            }
         }
 
         private void ChangeBuildings(bool isAdd)
@@ -117,7 +92,7 @@ namespace Components.Debug
                             new DeterministicVector2((int) hitInfo.point.x + 10, (int) hitInfo.point.z + 10))
                     };
 
-                    if (map.AddDynamicObject(newBuilding))
+                    if (Map.AddDynamicObject(newBuilding))
                     {
                         var newBuildingGo = GameObject.Instantiate(DebugBuilding);
 
@@ -139,7 +114,7 @@ namespace Components.Debug
                 {
                     if (buildings.Count > 0)
                     {
-                        if (map.RemoveDynamicObject(buildings[0]))
+                        if (Map.RemoveDynamicObject(buildings[0]))
                         {
                             GameObject.Destroy(buildingGameObjects[0]);
                             buildings.RemoveAt(0);
@@ -152,35 +127,35 @@ namespace Components.Debug
 
         public void OnDrawGizmos()
         {
-            if (map == null)
+            if (Map == null)
                 return;
 
             if (DebugClipper)
             {
-                DrawPolygons(map.FloorWithDynamicObjects, Color.green);
+                DrawPolygons(Map.FloorWithDynamicObjects, Color.green);
             }
 
             if (DebugTriangulation)
             {
                 Gizmos.color = Color.magenta;
-                for (int i = 0; i < map.NavigationMesh.AllTriangle.Count; i++)
+                for (int i = 0; i < Map.NavigationMesh.AllTriangle.Count; i++)
                 {
-                    Gizmos.DrawLine(ToVector(map.NavigationMesh.AllTriangle[i].U), ToVector(map.NavigationMesh.AllTriangle[i].V));
-                    Gizmos.DrawLine(ToVector(map.NavigationMesh.AllTriangle[i].V), ToVector(map.NavigationMesh.AllTriangle[i].W));
-                    Gizmos.DrawLine(ToVector(map.NavigationMesh.AllTriangle[i].W), ToVector(map.NavigationMesh.AllTriangle[i].U));
+                    Gizmos.DrawLine(ToVector(Map.NavigationMesh.AllTriangle[i].U), ToVector(Map.NavigationMesh.AllTriangle[i].V));
+                    Gizmos.DrawLine(ToVector(Map.NavigationMesh.AllTriangle[i].V), ToVector(Map.NavigationMesh.AllTriangle[i].W));
+                    Gizmos.DrawLine(ToVector(Map.NavigationMesh.AllTriangle[i].W), ToVector(Map.NavigationMesh.AllTriangle[i].U));
 
                 }
             }
 
             if (DebugGrid)
             {
-                foreach (var cell in map.Grid.Cells)
+                foreach (var cell in Map.Grid.Cells)
                 {
                     if (cell.Type == GridCellType.Free)
                     {
                         Gizmos.color = Color.green;
                     }
-                    else if(cell.Type == GridCellType.Building)
+                    else if (cell.Type == GridCellType.Building)
                     {
                         Gizmos.color = Color.blue;
                     }
@@ -195,34 +170,6 @@ namespace Components.Debug
                     Gizmos.DrawLine(ToVector(new DeterministicVector2(cell.X + 1, cell.Y + 1)), ToVector(new DeterministicVector2(cell.X, cell.Y + 1)));
                 }
             }
-
-            if (DebugPath)
-            {
-                if (map.Pathfinding != null)
-                {
-                    var from = new DeterministicVector2((int) PathA.transform.position.x, (int) PathA.transform.position.z);
-                    var to = new DeterministicVector2((int) PathB.transform.position.x, (int) PathB.transform.position.z);
-
-                    Gizmos.DrawLine(ToVector(from), ToVector(to));
-
-                    path = map.Pathfinding.CalculatePath(from, to);
-
-                    if (path != null)
-                    {
-                        Gizmos.color = Color.yellow;
-                        for (int i = 0; i < path.Count - 1; i++)
-                        {
-                            Gizmos.DrawLine(ToVector(path[i].Position), ToVector(path[i + 1].Position));
-                        }
-                    }
-                }
-            }
-
-        }
-
-        private Vector3 ToVector(Vec3 point)
-        {
-            return new Vector3(point.X.ToFloat(), 0, point.Y.ToFloat());
         }
 
         private Vector3 ToVector(DeterministicVector2 point)
@@ -250,6 +197,11 @@ namespace Components.Debug
                 p1 = region[i];
                 Gizmos.DrawLine(new Vector3(p0.X.ToFloat(), 0, p0.Y.ToFloat()), new Vector3(p1.X.ToFloat(), 0, p1.Y.ToFloat()));
             }
+        }
+
+        public void FixedUpdate()
+        {
+            this.Map.UpdateUnits();
         }
 
         private NavigationPolygon ToPolygon(GameObject go, int funnelSize)

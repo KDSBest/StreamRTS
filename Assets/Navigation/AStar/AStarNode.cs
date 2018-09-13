@@ -12,6 +12,8 @@ namespace Assets.Navigation.AStar
     {
         public DeterministicVector2 Position;
         private DeterministicVector2 destination;
+        public DeterministicVector2 ConstraintedEdgeNormal;
+
 
         public AStarNode Parent
         {
@@ -26,7 +28,7 @@ namespace Assets.Navigation.AStar
                 if (value == null || parent == null)
                     return;
 
-                DeterministicInt newG = parent.G + (this.Position - parent.Position).ManhattanHeuristic();
+                DeterministicFloat newG = parent.G + (this.Position - parent.Position).ManhattanHeuristic();
                 if (newG < this.G)
                 {
                     parent = value;
@@ -36,11 +38,11 @@ namespace Assets.Navigation.AStar
         }
 
         // Distance Start to Current
-        public DeterministicInt G = new DeterministicInt(0, true);
+        public DeterministicFloat G = new DeterministicFloat(0, true);
         private AStarNode parent;
 
         // Heuristic to Destination
-        public DeterministicInt H
+        public DeterministicFloat H
         {
             get
             {
@@ -61,9 +63,11 @@ namespace Assets.Navigation.AStar
             {
                 this.G = parent.G + (this.Position - parent.Position).ManhattanHeuristic();
             }
+
+            ConstraintedEdgeNormal = new DeterministicVector2(0, 0);
         }
 
-        public DeterministicInt GetCost()
+        public DeterministicFloat GetCost()
         {
             return G + H;
         }

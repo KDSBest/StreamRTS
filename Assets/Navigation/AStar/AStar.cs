@@ -5,9 +5,6 @@ using System.Text;
 using ClipperLib;
 using LibTessDotNet;
 using Navigation;
-using UnityEditor.Build.Content;
-using UnityEngine;
-using UnityEngine.Animations;
 
 namespace Assets.Navigation.AStar
 {
@@ -50,8 +47,35 @@ namespace Assets.Navigation.AStar
             path.Add(new AStarNode(b, b));
             path.Insert(0, new AStarNode(a, b));
 
-            OptimizePath(path);
+            //OptimizePath(path);
+
             return path;
+        }
+
+        private void AddFunnelInformation(List<AStarNode> path)
+        {
+            foreach (var node in path)
+            {
+                foreach (var polygon in constrainedEdgePolygons)
+                {
+                    foreach (var edge in polygon.ConstraintedEdges)
+                    {
+                        if (node.Position == edge.A)
+                        {
+                            node.ConstraintedEdgeNormal += edge.A - edge.B;
+                        }
+                        else if(node.Position == edge.B)
+                        {
+                            node.ConstraintedEdgeNormal += edge.B - edge.A;
+                        }
+                    }
+                }
+
+                if (node.ConstraintedEdgeNormal.X != 0 || node.ConstraintedEdgeNormal.Y != 0)
+                {
+                    node.ConstraintedEdgeNormal = node.ConstraintedEdgeNormal.Normalize();
+                }
+            }
         }
 
         private void OptimizePath(List<AStarNode> path)
@@ -83,11 +107,6 @@ namespace Assets.Navigation.AStar
             if (result.Count > 2)
                 return true;
 
-
-            if(result.Count > 1)
-            Debug.Log("Deltas " + result[0].Deltas.X.ToInt() + " " + result[0].Deltas.Y.ToInt() + " and " + result[1].Deltas.X.ToInt() + " " + result[1].Deltas.Y.ToInt());
-            else
-                Debug.Log("Deltas " + result[0].Deltas.X.ToInt() + " " + result[0].Deltas.Y.ToInt());
             return result[0].SegmentsIntersect && !(result[0].Deltas.X == 1 || result[0].Deltas.Y == 0 || result[0].Deltas.X == 0 || result[0].Deltas.Y == 1);
         }
 
@@ -163,6 +182,8 @@ namespace Assets.Navigation.AStar
                 result.Insert(0, result[0].Parent);
                 resultReversed.Add(result[0].Parent);
             }
+
+            AddFunnelInformation(result);
 
             pathCache[context.ATri].Add(context.BTri, result);
             pathCache[context.BTri].Add(context.ATri, resultReversed);
