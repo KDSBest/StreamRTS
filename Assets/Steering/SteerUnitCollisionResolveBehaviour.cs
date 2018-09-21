@@ -28,7 +28,7 @@ namespace Steering
                 if (distance >= neededDistance)
                     continue;
 
-                var toMoveDistance = (neededDistance - distance) / 4;
+                var toMoveDistance = (neededDistance - distance) / 10;
 
                 toMove += direction.Normalize() * toMoveDistance;
             }

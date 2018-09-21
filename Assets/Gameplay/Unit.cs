@@ -13,12 +13,13 @@ namespace Gameplay
 {
     public class Unit
     {
+        public int Id = 0;
+        public int PlayerId = -1;
         public DeterministicVector2 Position { get; set; }
         public DeterministicVector2 OldPosition = new DeterministicVector2();
         public DeterministicVector2 LastSteering = new DeterministicVector2();
-        public DeterministicFloat Speed = new DeterministicFloat(0.1);
+        public DeterministicFloat Speed = new DeterministicFloat(0.3);
         public DeterministicFloat FunnelSize = 1;
-        public int Id = 0;
 
         public List<NavigationEdge> Path;
 
@@ -48,27 +49,14 @@ namespace Gameplay
             new SteerUnitCollisionConstrainedEdgeBehaviour()
         };
 
-        public Unit(int id)
+        public Unit(Map map, int id, DeterministicVector2 startingPosition, int playerId)
         {
             this.Id = id;
-        }
-
-        public bool IsInitialized
-        {
-            get { return map != null; }
-        }
-
-        public void Initialize(DeterministicVector2 position, Map map)
-        {
-            this.Position = position;
-            this.newPosition = position;
+            Position = startingPosition;
+            OldPosition = startingPosition;
+            PlayerId = playerId;
+            this.newPosition = startingPosition;
             this.map = map;
-
-            if (this.map != null)
-            {
-                Debug.Log("Added myself to map " + this.Id);
-                this.map.AllUnits.Add(this);
-            }
         }
 
         public void Idle()

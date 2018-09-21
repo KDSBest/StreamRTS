@@ -102,6 +102,11 @@ namespace Navigation
             return X * X + Y * Y;
         }
 
+        public bool IsZero
+        {
+            get { return X.RawValue == 0 && Y.RawValue == 0; }
+        }
+
         public DeterministicFloat GetLength()
         {
             return DeterministicFloat.Sqrt(GetLengthSquared());

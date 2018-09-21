@@ -18,13 +18,7 @@ namespace Components.Debug
         public bool DebugGrid = true;
 
         public Map Map;
-        private List<List<NavigationEdge>> buildings = new List<List<NavigationEdge>>();
-        private List<GameObject> buildingGameObjects = new List<GameObject>();
 
-        public GameObject DebugBuilding;
-
-        public GameObject PathA;
-        public GameObject PathB;
         private List<AStarNode> path;
 
         public void Start()
@@ -63,66 +57,6 @@ namespace Components.Debug
                 return false;
 
             return true;
-        }
-
-        public void Update()
-        {
-            if (Input.GetMouseButtonUp(0))
-            {
-                ChangeBuildings(true);
-            }
-            else if (Input.GetMouseButtonUp(1))
-            {
-                ChangeBuildings(false);
-            }
-        }
-
-        private void ChangeBuildings(bool isAdd)
-        {
-            var mainCam = GameObject.FindObjectOfType<Camera>();
-            var ray = mainCam.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hitInfo;
-            if (Physics.Raycast(ray, out hitInfo))
-            {
-                if (isAdd)
-                {
-                    var newBuilding = new List<NavigationEdge>()
-                    {
-                        new NavigationEdge(new DeterministicVector2((int) hitInfo.point.x, (int) hitInfo.point.z),
-                            new DeterministicVector2((int) hitInfo.point.x + 10, (int) hitInfo.point.z + 10))
-                    };
-
-                    if (Map.AddDynamicObject(newBuilding))
-                    {
-                        var newBuildingGo = GameObject.Instantiate(DebugBuilding);
-
-                        newBuildingGo.transform.position = new Vector3(
-                            (newBuilding[0].A.X + (newBuilding[0].B.X - newBuilding[0].A.X) / 2).ToFloat(), 1,
-                            (newBuilding[0].A.Y + (newBuilding[0].B.Y - newBuilding[0].A.Y) / 2).ToFloat());
-                        var size = newBuilding[0].GetDirection();
-                        newBuildingGo.transform.localScale = new Vector3(size.X.ToFloat(), 2, size.Y.ToFloat());
-
-                        this.buildings.Add(newBuilding);
-                        this.buildingGameObjects.Add(newBuildingGo);
-                    }
-                    else
-                    {
-                        UnityEngine.Debug.Log("Can't Build Here!");
-                    }
-                }
-                else
-                {
-                    if (buildings.Count > 0)
-                    {
-                        if (Map.RemoveDynamicObject(buildings[0]))
-                        {
-                            GameObject.Destroy(buildingGameObjects[0]);
-                            buildings.RemoveAt(0);
-                            buildingGameObjects.RemoveAt(0);
-                        }
-                    }
-                }
-            }
         }
 
         public void OnDrawGizmos()
@@ -197,11 +131,6 @@ namespace Components.Debug
                 p1 = region[i];
                 Gizmos.DrawLine(new Vector3(p0.X.ToFloat(), 0, p0.Y.ToFloat()), new Vector3(p1.X.ToFloat(), 0, p1.Y.ToFloat()));
             }
-        }
-
-        public void FixedUpdate()
-        {
-            this.Map.UpdateUnits();
         }
 
         private NavigationPolygon ToPolygon(GameObject go, int funnelSize)
