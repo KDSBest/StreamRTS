@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using ClipperLib;
 using LibTessDotNet;
 using Navigation;
+using UnityEngine;
 
 namespace Assets.Navigation.AStar
 {
@@ -47,9 +49,10 @@ namespace Assets.Navigation.AStar
             path.Add(new AStarNode(b, b));
             path.Insert(0, new AStarNode(a, b));
 
-            //OptimizePath(path);
+            var resultPath = new List<AStarNode>(path);
+            OptimizePath(resultPath);
 
-            return path;
+            return resultPath;
         }
 
         private void AddFunnelInformation(List<AStarNode> path)
@@ -140,7 +143,7 @@ namespace Assets.Navigation.AStar
 
             if (pathCache[context.ATri].ContainsKey(context.BTri))
             {
-                return pathCache[context.ATri][context.BTri].ToArray().ToList();
+                return new List<AStarNode>(pathCache[context.ATri][context.BTri]);
             }
 
             AddTriangleToQueue(context.ATri, null, context);
@@ -153,7 +156,7 @@ namespace Assets.Navigation.AStar
 
                 if (triangles.Contains(context.BTri))
                 {
-                    return BacktrackFinishPath(node, context);
+                    return new List<AStarNode>(BacktrackFinishPath(node, context));
                 }
 
                 foreach (var triangle in triangles)
@@ -172,23 +175,19 @@ namespace Assets.Navigation.AStar
                 end
             };
 
-            List<AStarNode> resultReversed = new List<AStarNode>()
-            {
-                end
-            };
-
             while (result[0].Parent != null)
             {
                 result.Insert(0, result[0].Parent);
-                resultReversed.Add(result[0].Parent);
             }
 
             AddFunnelInformation(result);
 
-            pathCache[context.ATri].Add(context.BTri, result);
-            pathCache[context.BTri].Add(context.ATri, resultReversed);
+            pathCache[context.ATri].Add(context.BTri, new List<AStarNode>(result));
+            var reversed = new List<AStarNode>(result);
+            reversed.Reverse();
+            pathCache[context.BTri].Add(context.ATri, reversed);
 
-            return result.ToArray().ToList();
+            return result;
         }
 
         private void AddTriangleToQueue(NavigationTriangle triangle, AStarNode parent, AStarContext context)
