@@ -23,6 +23,11 @@ namespace Gameplay
 
         public List<NavigationEdge> Path;
 
+        public bool IsWalking
+        {
+            get { return Path != null; }
+        }
+
         public int RecalculatePathAfterUpdates = 5;
 
         public List<Unit> Neighbours = new List<Unit>();

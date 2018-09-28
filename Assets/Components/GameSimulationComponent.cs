@@ -90,7 +90,7 @@ namespace Components.Debug
                 gameSimulation = new GameSimulation(this.mapComponent.Map, Players,
                 new GameConfiguration()
                 {
-                    WorkerCount = 4
+                    WorkerCount = 20
                 });
 
                 foreach (var player in Players)

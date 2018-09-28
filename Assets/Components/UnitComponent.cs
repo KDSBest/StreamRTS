@@ -16,9 +16,11 @@ namespace Components.Debug
     {
         private const float lerpSpeed = 10;
         public Unit Unit;
+        private Animator animator;
 
         public void Start()
         {
+            this.animator = GetComponent<Animator>();
         }
 
         public void OnDrawGizmos()
@@ -41,7 +43,11 @@ namespace Components.Debug
             if (this.Unit == null)
                 return;
 
+            this.animator.SetBool("IsWalking", this.Unit.IsWalking);
+
+            this.transform.LookAt(new Vector3(Unit.Position.X.ToFloat(), this.transform.position.y, Unit.Position.Y.ToFloat()), Vector3.up);
             this.transform.position = Vector3.Lerp(this.transform.position, new Vector3(Unit.Position.X.ToFloat(), this.transform.position.y, Unit.Position.Y.ToFloat()), lerpSpeed * Time.deltaTime);
+
         }
     }
 }
