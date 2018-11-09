@@ -46,7 +46,16 @@ namespace Components.Debug
             this.animator.SetBool("IsWalking", this.Unit.IsWalking);
 
             this.transform.LookAt(new Vector3(Unit.Position.X.ToFloat(), this.transform.position.y, Unit.Position.Y.ToFloat()), Vector3.up);
-            this.transform.position = Vector3.Lerp(this.transform.position, new Vector3(Unit.Position.X.ToFloat(), this.transform.position.y, Unit.Position.Y.ToFloat()), lerpSpeed * Time.deltaTime);
+
+            var heightRay = new Ray(new Vector3(Unit.Position.X.ToFloat(), 1000.0f, Unit.Position.Y.ToFloat()), Vector3.down);
+            RaycastHit hitInfo = new RaycastHit();
+            float height = 0;
+            if (Physics.Raycast(heightRay, out hitInfo, float.MaxValue, LayerMask.GetMask("Heightmap")))
+            {
+                height = hitInfo.point.y;
+            }
+
+            this.transform.position = Vector3.Lerp(this.transform.position, new Vector3(Unit.Position.X.ToFloat(), height, Unit.Position.Y.ToFloat()), lerpSpeed * Time.deltaTime);
 
         }
     }
