@@ -18,9 +18,25 @@ namespace Components.Debug
         public Unit Unit;
         private Animator animator;
 
+        public GameObject Probe;
+        public GameObject Stamp;
+
+        public bool IsEnemyUnit
+        {
+            // TODO you are not always player one later on
+            get { return Unit.PlayerId > 0; }
+        }
+
         public void Start()
         {
             this.animator = GetComponent<Animator>();
+            if (IsEnemyUnit)
+            {
+                var mats = Probe.GetComponent<Renderer>().materials;
+                mats[mats.Length - 1].color = Color.blue;
+
+                Stamp.SetActive(false);
+            }
         }
 
         public void OnDrawGizmos()

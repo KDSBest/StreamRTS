@@ -16,13 +16,14 @@ namespace Components.Debug
     [RequireComponent(typeof(MapComponent))]
     public class GameSimulationComponent : MonoBehaviour
     {
+        public Camera MainCamera;
         public GameObject UnitPrefab;
         private GameSimulation gameSimulation = null;
         private MapComponent mapComponent;
         private Dictionary<int, UnitComponent> units = new Dictionary<int, UnitComponent>();
 
         // TODO: Get this by matchmaking
-        public List<PlayerInformation> Players = new List<PlayerInformation>
+        public static List<PlayerInformation> Players = new List<PlayerInformation>
         {
             new PlayerInformation()
             {
@@ -50,8 +51,7 @@ namespace Components.Debug
         }
         private void MoveAllUnit(CommandType type)
         {
-            var mainCam = GameObject.FindObjectOfType<Camera>();
-            var ray = mainCam.ScreenPointToRay(Input.mousePosition);
+            var ray = MainCamera.ScreenPointToRay(Input.mousePosition);
             RaycastHit hitInfo;
             if (Physics.Raycast(ray, out hitInfo))
             {

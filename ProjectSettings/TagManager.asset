@@ -14,7 +14,8 @@ TagManager:
   - 
   - 
   - PostProcessing
-  - Heighmap
+  - Heightmap
+  - Units
   - 
   - 
   - 
@@ -35,8 +36,7 @@ TagManager:
   - 
   - 
   - 
-  - 
-  - 
+  - FogOfWarStamp
   m_SortingLayers:
   - name: Default
     uniqueID: 0
