@@ -1,28 +1,42 @@
 ﻿Shader "Custom/FogOfWarStamp" {
-	Properties {
+	Properties{
+		heightmapScale("Hightposition Int to Float Scale", Range(0, 1000)) = 10
 	}
-	SubShader {
-		Tags { "RenderType"="Opaque" }
+		SubShader{
+			Pass
+		{
+			Tags { "RenderType" = "Opaque" }
 
-		CGPROGRAM
-		// Physically based Standard lighting model, and enable shadows on all light types
-		#pragma surface surf SimpleNoLightning
+			CGPROGRAM
+			#pragma vertex vert
+			#pragma fragment frag
+			#include "UnityCG.cginc"
 
-		// Use shader model 3.0 target, to get nicer looking lighting
-		#pragma target 3.0
+			float heightmapScale;
 
-		struct Input {
-			float2 uv_MainTex;
+		// vertex input: position, normal, tangent
+		struct appdata {
+			float4 vertex : POSITION;
 		};
 
-	half4 LightingSimpleNoLightning(SurfaceOutput s, half3 lightDir, half atten) {
-		return half4(1, 1, 1, 1);
-	}
+		struct v2f {
+			float4 pos : SV_POSITION;
+			float2 uv : TEXCOORD0;
+		};
 
-	void surf (Input IN, inout SurfaceOutput o) {
-			o.Albedo = half3(1, 1, 1, 1);
+		v2f vert(appdata v) {
+			v2f o;
+			o.pos = UnityObjectToClipPos(v.vertex);
+			o.uv.xy = mul(unity_ObjectToWorld, v.vertex).xy;
+			return o;
+		}
+
+		fixed frag(v2f i) : SV_Target
+		{
+			return i.uv.y / heightmapScale;
 		}
 		ENDCG
+			}
 	}
 	FallBack "Diffuse"
 }

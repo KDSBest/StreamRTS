@@ -28,7 +28,7 @@ namespace Gameplay
             get { return Path != null; }
         }
 
-        public int RecalculatePathAfterUpdates = 5;
+        public int RecalculatePathAfterUpdates = 60;
 
         public List<Unit> Neighbours = new List<Unit>();
 

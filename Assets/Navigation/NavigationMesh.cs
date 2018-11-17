@@ -34,7 +34,7 @@ namespace Assets.Navigation
                 AllTriangle.Add(triangle);
             }
 
-            Refine();
+            // Refine();
 
             foreach (var triangle in AllTriangle)
             {
