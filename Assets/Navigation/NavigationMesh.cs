@@ -41,6 +41,9 @@ namespace Assets.Navigation
                 AddTriangleToPointMap(triangle.U, triangle);
                 AddTriangleToPointMap(triangle.V, triangle);
                 AddTriangleToPointMap(triangle.W, triangle);
+                AddTriangleToPointMap(triangle.S0.Midpoint(), triangle);
+                AddTriangleToPointMap(triangle.S1.Midpoint(), triangle);
+                AddTriangleToPointMap(triangle.S2.Midpoint(), triangle);
             }
         }
 

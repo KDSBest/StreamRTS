@@ -227,6 +227,9 @@ namespace Assets.Navigation.AStar
             AddPointToQueue(triangle.U, parent, context);
             AddPointToQueue(triangle.V, parent, context);
             AddPointToQueue(triangle.W, parent, context);
+            AddPointToQueue(triangle.S0.Midpoint(), parent, context);
+            AddPointToQueue(triangle.S1.Midpoint(), parent, context);
+            AddPointToQueue(triangle.S2.Midpoint(), parent, context);
         }
 
         private void AddPointToQueue(DeterministicVector2 trianglePoint, AStarNode parent, AStarContext context)

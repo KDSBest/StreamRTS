@@ -28,14 +28,10 @@ namespace Gameplay
             get { return Path != null; }
         }
 
-        public int RecalculatePathAfterUpdates = 60;
-
         public List<Unit> Neighbours = new List<Unit>();
 
         // not allowed to use outside because this is not deterministic
         private DeterministicVector2 newPosition = new DeterministicVector2();
-
-        private int recalculatePathUpdates = 0;
 
         private Map map;
         private DeterministicVector2 lastTo;
@@ -95,8 +91,6 @@ namespace Gameplay
 
         private void RecalculatePath(DeterministicVector2 to)
         {
-            recalculatePathUpdates = 0;
-
             this.Path = null;
             var path = map.Pathfinding.CalculatePath(new DeterministicVector2(Position), to);
             lastTo = to;
@@ -152,10 +146,6 @@ namespace Gameplay
                 {
                     Idle();
                 }
-                recalculatePathUpdates++;
-
-                if (recalculatePathUpdates >= RecalculatePathAfterUpdates)
-                    RecalculatePath(lastTo);
             }
         }
     }
