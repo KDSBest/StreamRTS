@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -20,7 +21,7 @@ namespace Gameplay
         public DeterministicVector2 LastSteering = new DeterministicVector2();
         public DeterministicFloat Speed = new DeterministicFloat(0.3);
         public DeterministicFloat FunnelSize = 1;
-
+        public bool RecalcPathOnNextUpdate = false;
         public List<NavigationEdge> Path;
 
         public bool IsWalking
@@ -86,7 +87,7 @@ namespace Gameplay
             if (this.Path == null)
                 return;
 
-            RecalculatePath(lastTo);
+            RecalcPathOnNextUpdate = true;
         }
 
         private void RecalculatePath(DeterministicVector2 to)
@@ -146,7 +147,17 @@ namespace Gameplay
                 {
                     Idle();
                 }
+                else
+                {
+                    if (RecalcPathOnNextUpdate)
+                    {
+                        UnityEngine.Debug.Log("Recalc Path!");
+                        RecalculatePath(lastTo);
+                    }
+                }
             }
+
+            RecalcPathOnNextUpdate = false;
         }
     }
 }

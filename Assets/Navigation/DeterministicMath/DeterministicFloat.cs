@@ -477,8 +477,8 @@ namespace Navigation.DeterministicMath
         {
             if (F < 0)
                 return F.Inverse;
-            else
-                return F;
+
+            return F;
         }
         #endregion
 

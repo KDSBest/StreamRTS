@@ -15,12 +15,17 @@ namespace Steering
         {
             DeterministicVector2 result = new DeterministicVector2();
 
-            foreach (var poly in map.FloorWithDynamicObjects)
+            foreach (NavigationPolygon poly in map.FloorWithDynamicObjects)
             {
+                var aabbDist = poly.GetBoundingDistance(unit.Position);
+                if (aabbDist > unit.FunnelSize)
+                {
+                    continue;
+                }
+
                 foreach (var edge in poly.ConstraintedEdges)
                 {
                     var distanceResult = edge.GetDistance(unit.Position);
-
                     if (distanceResult.Distance < unit.FunnelSize)
                     {
                         var direction = unit.Position - distanceResult.ClosestPoint;

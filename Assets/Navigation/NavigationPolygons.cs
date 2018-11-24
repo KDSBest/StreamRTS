@@ -31,16 +31,22 @@ namespace Navigation
             return copy;
         }
 
-        public List<EdgeIntersectionResult> CalculateAllIntersection(NavigationEdge edge)
+        public List<EdgeIntersectionResult> CalculateMultipleIntersection(NavigationEdge edge, int maximum)
         {
             List<EdgeIntersectionResult> result = new List<EdgeIntersectionResult>();
             foreach (var poly in this)
             {
-                foreach (var constrainedEdge in poly.ConstraintedEdges)
+                if (poly.GetBoundingIntersection(edge))
                 {
-                    var r = edge.CalculateIntersection(constrainedEdge);
-                    if (r.SegmentsIntersect)
-                        result.Add(r);
+                    foreach (var constrainedEdge in poly.ConstraintedEdges)
+                    {
+                        var r = edge.CalculateIntersection(constrainedEdge);
+                        if (r.SegmentsIntersect)
+                            result.Add(r);
+
+                        if (result.Count > maximum)
+                            return result;
+                    }
                 }
             }
 

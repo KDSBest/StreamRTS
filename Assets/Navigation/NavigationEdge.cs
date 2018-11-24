@@ -80,11 +80,11 @@ namespace Navigation
             // normally t1 is 0 -> 1 (or no hit), but for us it's 0 -> 1
             var t2 = ((other.A.X - this.A.X) * dy12 + (this.A.Y - other.A.Y) * dx12) / -denominator;
 
-            result.IntersectionPoint = new DeterministicVector2(this.A.X + dx12 * t1, this.A.Y + dy12 * t1);
+            // result.IntersectionPoint = new DeterministicVector2(this.A.X + dx12 * t1, this.A.Y + dy12 * t1);
 
             result.SegmentsIntersect = t1 >= 0 && t1 <= 1 && t2 >= 0 && t2 <= 1;
             result.Deltas = new DeterministicVector2(t1, t2);
-            // find closes points
+
             if (t1 < 0)
             {
                 t1 = new DeterministicFloat(0);
@@ -103,7 +103,7 @@ namespace Navigation
                 t2 = new DeterministicFloat(1);
             }
 
-            result.SegmentIntersection = new NavigationEdge(new DeterministicVector2(this.A.X + dx12 * t1, this.A.Y + dy12 * t1), new DeterministicVector2(other.A.X + dx34 * t2, other.A.Y + dy34 * t2));
+            // result.SegmentIntersection = new NavigationEdge(new DeterministicVector2(this.A.X + dx12 * t1, this.A.Y + dy12 * t1), new DeterministicVector2(other.A.X + dx34 * t2, other.A.Y + dy34 * t2));
             return result;
         }
 
@@ -176,27 +176,24 @@ namespace Navigation
             if (t < 0)
             {
                 closest = new DeterministicVector2(A.X, A.Y);
-                dx = pt.X - A.X;
-                dy = pt.Y - A.Y;
             }
             else if (t > 1)
             {
                 closest = new DeterministicVector2(B.X, B.Y);
-                dx = pt.X - B.X;
-                dy = pt.Y - B.Y;
             }
             else
             {
                 isOnLine = true;
                 closest = new DeterministicVector2(A.X + t * dx, A.Y + t * dy);
-                dx = pt.X - closest.X;
-                dy = pt.Y - closest.Y;
             }
+
+            var dcx = pt.X - closest.X;
+            var dcy = pt.Y - closest.Y;
 
             return new NavigationEdgeDistanceResult()
             {
                 ClosestPoint = closest,
-                Distance = DeterministicFloat.Sqrt(dx * dx + dy * dy),
+                Distance = DeterministicFloat.Sqrt(dcx * dcx + dcy * dcy),
                 IsOnLine = isOnLine
             };
         }

@@ -26,17 +26,26 @@ namespace Steering
                 lastSteering = lastSteering.Normalize();
                 naiveNewPosition += lastSteering;
             }
+
             DeterministicFloat shortestDistance = new DeterministicFloat(long.MaxValue, false);
+
             NavigationEdge nearestEdge = new NavigationEdge();
             DeterministicVector2 closestPoint = new DeterministicVector2();
-            foreach (var pathEdge in path)
+
+            for (var i = 0; i < path.Count; i++)
             {
+                var pathEdge = path[i];
                 var distanceResult = pathEdge.GetDistance(naiveNewPosition);
                 if (distanceResult.Distance < shortestDistance)
                 {
                     shortestDistance = distanceResult.Distance;
                     nearestEdge = pathEdge;
                     closestPoint = distanceResult.ClosestPoint;
+
+                    if (i > 0)
+                    {
+                        unit.RecalcPathOnNextUpdate = true;
+                    }
 
                     // naive positioning is on path, we don't need to steer
                     if (isLastMovementPossible && shortestDistance <= PathSize)

@@ -16,6 +16,8 @@ namespace Components.Debug
         public bool DebugClipper = true;
         public bool DebugTriangulation = true;
         public bool DebugGrid = true;
+        public bool DebugPolygons = true;
+        public bool DebugPolygonsAABBs = true;
 
         public Map Map;
 
@@ -78,6 +80,38 @@ namespace Components.Debug
                     Gizmos.DrawLine(ToVector(Map.NavigationMesh.AllTriangle[i].V), ToVector(Map.NavigationMesh.AllTriangle[i].W));
                     Gizmos.DrawLine(ToVector(Map.NavigationMesh.AllTriangle[i].W), ToVector(Map.NavigationMesh.AllTriangle[i].U));
 
+                }
+            }
+
+            if (DebugPolygons)
+            {
+                for (int i = 0; i < Map.FloorWithDynamicObjects.Count; i++)
+                {
+                    Gizmos.color = new Color(i % 2 == 0 ? 0 : 1, i >> 1 % 2 == 0 ? 0 : 1, i >>2 % 2 == 0 ? 0 : 1);
+                    for (var j = 0; j < Map.FloorWithDynamicObjects[i].Count - 1; j++)
+                    {
+                        Gizmos.DrawLine(ToVector(Map.FloorWithDynamicObjects[i][j]), ToVector(Map.FloorWithDynamicObjects[i][j +1]));
+                    }
+
+                    if (Map.FloorWithDynamicObjects[i].Count > 1)
+                    {
+                        Gizmos.DrawLine(ToVector(Map.FloorWithDynamicObjects[i][Map.FloorWithDynamicObjects[i].Count - 1]), ToVector(Map.FloorWithDynamicObjects[i][0]));
+                    }
+                }
+            }
+
+            if (DebugPolygonsAABBs)
+            {
+                for (int i = 0; i < Map.FloorWithDynamicObjects.Count; i++)
+                {
+                    Gizmos.color = new Color(i % 2 == 0 ? 0 : 1, i >> 1 % 2 == 0 ? 0 : 1, i >> 2 % 2 == 0 ? 0 : 1);
+                    var bounding = Map.FloorWithDynamicObjects[i].GetBounding();
+                    var topRight = new DeterministicVector2(bounding.B.X, bounding.A.Y);
+                    var bottomLeft = new DeterministicVector2(bounding.A.X, bounding.B.Y);
+                    Gizmos.DrawLine(ToVector(bounding.A), ToVector(topRight));
+                    Gizmos.DrawLine(ToVector(topRight), ToVector(bounding.B));
+                    Gizmos.DrawLine(ToVector(bounding.A), ToVector(bottomLeft));
+                    Gizmos.DrawLine(ToVector(bottomLeft), ToVector(bounding.B));
                 }
             }
 

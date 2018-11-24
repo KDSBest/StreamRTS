@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -83,38 +84,9 @@ namespace Assets.Navigation.AStar
 
         private void OptimizePath(List<AStarNode> path)
         {
-            List<AStarNode> newPath = new List<AStarNode>();
-
             if (path.Count == 0)
                 return;
 
-            //newPath.Add(path[0]);
-            //var edge = new NavigationEdge();
-            //for (int currentPosition = 1; currentPosition < path.Count; currentPosition++)
-            //{
-            //    bool foundShortcut = false;
-            //    edge.A = path[currentPosition - 1].Position;
-            //    for (int i = path.Count - 1; i > currentPosition; i--)
-            //    {
-            //        edge.B = path[i].Position;
-            //        var result = constrainedEdgePolygons.CalculateAllIntersection(edge);
-            //        if (!CanNotOptimize(result))
-            //        {
-            //            foundShortcut = true;
-            //            newPath.Add(path[i]);
-            //            currentPosition = i;
-            //            break;
-            //        }
-            //    }
-
-            //    if (!foundShortcut)
-            //    {
-            //        newPath.Add(path[currentPosition]);
-            //    }
-            //}
-
-            //path.Clear();
-            //path.AddRange(newPath);
             int currentPosition = 0;
             var edge = new NavigationEdge();
             while (currentPosition < path.Count - 2)
@@ -122,10 +94,11 @@ namespace Assets.Navigation.AStar
                 edge.A = path[currentPosition].Position;
                 edge.B = path[currentPosition + 2].Position;
 
-                var result = constrainedEdgePolygons.CalculateAllIntersection(edge);
+                var result = constrainedEdgePolygons.CalculateMultipleIntersection(edge, 3);
                 if (CanNotOptimize(result))
                 {
                     currentPosition++;
+                    break;
                 }
                 else
                 {
@@ -188,7 +161,8 @@ namespace Assets.Navigation.AStar
 
                 if (triangles.Contains(context.BTri))
                 {
-                    return new List<AStarNode>(BacktrackFinishPath(node, context));
+                    var path = new List<AStarNode>(BacktrackFinishPath(node, context));
+                    return path;
                 }
 
                 foreach (var triangle in triangles)
